@@ -1,19 +1,23 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+
 import { FaClock, FaDollarSign, FaCalendarAlt } from "react-icons/fa";
 import { MdPendingActions } from "react-icons/md";
 import Swal from "sweetalert2";
 import useAuth from "../../hooks/useAuth";
+import useAxios from "../../hooks/useAxios";
+import Loading from "../../Component/Loading";
 
 const PendingBookings = () => {
   const { user } = useAuth();
+  const axiosSecure = useAxios();
   const [pendingBookings, setPendingBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchPendingBookings = async () => {
+    setLoading(true);
     try {
-      const res = await axios.get(
-        `http://localhost:5000/bookings?status=pending&email=${user?.email}`
+      const res = await axiosSecure.get(
+        `/bookings?status=pending&email=${user?.email}`
       );
       setPendingBookings(res.data);
     } catch (err) {
@@ -31,8 +35,8 @@ const PendingBookings = () => {
 
   if (loading) {
     return (
-      <div className="text-center mt-20 text-lg font-semibold">
-        Loading pending bookings...
+      <div className="text-center mt-10 text-lg text-gray-600">
+        <Loading></Loading>
       </div>
     );
   }
@@ -49,7 +53,7 @@ const PendingBookings = () => {
 
     if (result.isConfirmed) {
       try {
-        const res = await axios.delete(`http://localhost:5000/bookings/${id}`);
+        const res = await axiosSecure.delete(`/bookings/${id}`);
         if (res.data.deletedCount) {
           Swal.fire("Cancelled!", "The booking has been cancelled.", "success");
           fetchPendingBookings(); // এখানে ডাটা রিফ্রেশ হবে

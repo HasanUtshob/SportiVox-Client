@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
+import useAxios from "../../hooks/useAxios";
+import Loading from "../../Component/Loading";
 
 const ManageMembers = () => {
   const [members, setMembers] = useState([]);
   const [filteredMembers, setFilteredMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
+  const axiosSecure = useAxios();
 
   const fetchMembers = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/members");
+      setLoading(true);
+      const res = await axiosSecure.get("/members");
       setMembers(res.data);
       setFilteredMembers(res.data);
     } catch (err) {
@@ -37,9 +40,7 @@ const ManageMembers = () => {
 
     if (result.isConfirmed) {
       try {
-        const res = await axios.delete(
-          `http://localhost:5000/members/${email}`
-        );
+        const res = await axiosSecure.delete(`/members/${email}`);
 
         if (
           res.data.deletedCount > 0 ||
@@ -69,6 +70,13 @@ const ManageMembers = () => {
     setFilteredMembers(filtered);
   };
 
+  if (loading) {
+    return (
+      <div className="text-center mt-10 text-lg text-gray-600">
+        <Loading></Loading>
+      </div>
+    );
+  }
   return (
     <div className="max-w-5xl mx-auto py-10 px-4">
       <h2 className="text-3xl font-bold mb-6 text-center text-primary">

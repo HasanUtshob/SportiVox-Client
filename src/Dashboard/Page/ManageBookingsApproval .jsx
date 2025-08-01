@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
 import { MdManageSearch } from "react-icons/md";
+import useAxios from "../../hooks/useAxios";
 
 const ManageBookingsApproval = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const axiosSecure = useAxios();
 
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        setLoading(true); // Add this
-        const res = await axios.get("http://localhost:5000/bookings");
-
+        setLoading(true);
+        const res = await axiosSecure.get("/bookings");
         const sorted = res.data.sort((a, b) => {
           if (a.status === "pending" && b.status !== "pending") return -1;
           if (a.status !== "pending" && b.status === "pending") return 1;
@@ -28,7 +28,7 @@ const ManageBookingsApproval = () => {
     };
 
     fetchBookings();
-  }, []);
+  }, [axiosSecure]);
 
   //   // Remove booking from UI after approve/reject
   const removeBookingFromUI = (id) => {
@@ -47,9 +47,8 @@ const ManageBookingsApproval = () => {
 
     if (result.isConfirmed) {
       try {
-        const res = await axios.put(
-          `http://localhost:5000/bookings/approve/${bookingId}`
-        );
+        setLoading(true);
+        const res = await axiosSecure.put(`/bookings/approve/${bookingId}`);
         if (res.data.bookingModified > 0 || res.data.userModified > 0) {
           await Swal.fire(
             "Approved!",
@@ -68,6 +67,8 @@ const ManageBookingsApproval = () => {
       } catch (err) {
         console.error("Approval error:", err);
         Swal.fire("Error!", "Something went wrong.", "error");
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -85,7 +86,8 @@ const ManageBookingsApproval = () => {
 
     if (result.isConfirmed) {
       try {
-        const res = await axios.delete(`http://localhost:5000/bookings/${id}`);
+        setLoading(true);
+        const res = await axiosSecure.delete(`/bookings/${id}`);
         if (res.data.deletedCount > 0) {
           Swal.fire("Rejected!", "Booking has been deleted.", "success");
           removeBookingFromUI(id);
@@ -93,6 +95,8 @@ const ManageBookingsApproval = () => {
       } catch (err) {
         console.error("Rejection error:", err);
         Swal.fire("Error", "Failed to delete booking", "error");
+      } finally {
+        setLoading(false);
       }
     }
   };

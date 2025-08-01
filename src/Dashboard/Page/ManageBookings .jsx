@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
 import { FaSortAmountDown, FaSortAmountUp } from "react-icons/fa";
+import useAxios from "../../hooks/useAxios";
+import Loading from "../../Component/Loading";
 
 const ManageBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -10,25 +11,24 @@ const ManageBookings = () => {
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState(null); // 'date' or 'price'
   const [sortOrder, setSortOrder] = useState("asc"); // 'asc' or 'desc'
-
-  const fetchBookings = async () => {
-    try {
-      const res = await axios.get(
-        "http://localhost:5000/bookings?paymentStatus=paid"
-      );
-      setBookings(res.data);
-      setFiltered(res.data);
-    } catch (err) {
-      console.error("Error fetching bookings:", err);
-      Swal.fire("Error", "Could not load bookings", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const axiosSecure = useAxios();
 
   useEffect(() => {
+    const fetchBookings = async () => {
+      setLoading(true);
+      try {
+        const res = await axiosSecure.get("/bookings?paymentStatus=paid");
+        setBookings(res.data);
+        setFiltered(res.data);
+      } catch (err) {
+        console.error("Error fetching bookings:", err);
+        Swal.fire("Error", "Could not load bookings", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchBookings();
-  }, []);
+  }, [axiosSecure]);
 
   // Handle search
   useEffect(() => {
@@ -104,7 +104,7 @@ const ManageBookings = () => {
       </div>
 
       {loading ? (
-        <p className="text-center">Loading bookings...</p>
+        <Loading></Loading>
       ) : filtered.length === 0 ? (
         <p className="text-center text-gray-500">
           No confirmed bookings found.

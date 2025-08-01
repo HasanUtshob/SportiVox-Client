@@ -8,7 +8,7 @@ import {
   FaMoneyBillWave,
 } from "react-icons/fa";
 import Swal from "sweetalert2";
-import axios from "axios";
+import useAxios from "../../../hooks/useAxios";
 
 const AddCourtForm = ({ onClose }) => {
   const {
@@ -17,10 +17,10 @@ const AddCourtForm = ({ onClose }) => {
     reset,
     formState: { errors },
   } = useForm();
-
+  const axiosSecure = useAxios();
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post("http://localhost:5000/courts", data);
+      const res = await axiosSecure.post("/courts", data);
       if (res.data.insertedId) {
         Swal.fire("Success!", "Court Added Successfully", "success");
         reset();

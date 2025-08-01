@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
 import { MdVerified } from "react-icons/md";
 import useAuth from "../../hooks/useAuth";
+import useAxios from "../../hooks/useAxios";
+import Loading from "../../Component/Loading";
 
 const ConfirmedBookings = () => {
   const { user } = useAuth();
   const [confirmedBookings, setConfirmedBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const axiosSecure = useAxios();
   const fetchConfirmedBookings = async () => {
+    setLoading(true);
     try {
-      const res = await axios.get(
-        `http://localhost:5000/bookings?paymentStatus=paid&email=${user?.email}`
+      const res = await axiosSecure.get(
+        `/bookings?paymentStatus=paid&email=${user?.email}`
       );
 
       setConfirmedBookings(res.data);
@@ -41,12 +43,10 @@ const ConfirmedBookings = () => {
 
     if (confirm.isConfirmed) {
       try {
-        const res = await axios.delete(
-          `http://localhost:5000/members/${email}`
-        );
+        const res = await axiosSecure.delete(`/members/${email}`);
         if (res.data.message) {
           Swal.fire("Deleted!", "Member successfully deleted.", "success");
-          fetchConfirmedBookings(); // অথবা local state থেকে filter করে remove করতে পারেন
+          fetchConfirmedBookings();
         }
       } catch (error) {
         console.error(error);
@@ -58,7 +58,7 @@ const ConfirmedBookings = () => {
   if (loading) {
     return (
       <div className="text-center mt-10 text-lg text-gray-600">
-        Loading confirmed bookings...
+        <Loading></Loading>
       </div>
     );
   }

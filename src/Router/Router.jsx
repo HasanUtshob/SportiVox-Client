@@ -5,7 +5,7 @@ import Courts from "../page/Courts";
 import AuthLayOut from "../LayOut/AuthLayOut";
 import SignIn from "../page/SignIn";
 import Register from "../page/Register";
-import MyProfile from "../page/MyProfile";
+// import MyProfile from "../page/MyProfile";
 import About from "../Component/About";
 import DashboardLayout from "../LayOut/DashboardLayout";
 import Dashboard from "../page/Dashboard";
@@ -26,7 +26,7 @@ import Forbidden from "../page/Forbidden";
 import PrivateRoutes from "./PrivateRoutes";
 import NotFound from "../page/NotFound";
 import MemberRoute from "./MemberRoute";
-
+import MyProfile from "../page/MyProfile";
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -64,14 +64,15 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  {
-    path: "/forbidden",
-    Component: Forbidden,
-  },
+
   // Dashboard
   {
     path: "/",
-    Component: DashboardLayout,
+    element: (
+      <PrivateRoutes>
+        <DashboardLayout />
+      </PrivateRoutes>
+    ),
     children: [
       {
         path: "/Dashboard",
@@ -82,14 +83,18 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "/MyProfile",
-        Component: MyProfile,
+        path: "/My_Profile",
+        element: (
+          <PrivateRoutes>
+            <MyProfile />
+          </PrivateRoutes>
+        ),
       },
       {
         path: "/Manage_Courts",
         element: (
           <AdminRoute>
-            <ManageCourts></ManageCourts>
+            <ManageCourts />
           </AdminRoute>
         ),
       },
@@ -101,7 +106,7 @@ export const router = createBrowserRouter([
         path: "/Manage_bookings_approval",
         element: (
           <AdminRoute>
-            <ManageBookingsApproval></ManageBookingsApproval>
+            <ManageBookingsApproval />
           </AdminRoute>
         ),
       },
@@ -109,7 +114,7 @@ export const router = createBrowserRouter([
         path: "/Approved_Bookings",
         element: (
           <MemberRoute>
-            <ApprovedBookings></ApprovedBookings>
+            <ApprovedBookings />
           </MemberRoute>
         ),
       },
@@ -117,7 +122,7 @@ export const router = createBrowserRouter([
         path: "/Confirmed_Bookings",
         element: (
           <MemberRoute>
-            <ConfirmedBookings></ConfirmedBookings>
+            <ConfirmedBookings />
           </MemberRoute>
         ),
       },
@@ -125,7 +130,7 @@ export const router = createBrowserRouter([
         path: "/Payment_History",
         element: (
           <MemberRoute>
-            <PaymentHistory></PaymentHistory>
+            <PaymentHistory />
           </MemberRoute>
         ),
       },
@@ -133,7 +138,7 @@ export const router = createBrowserRouter([
         path: "/Manage_Members",
         element: (
           <AdminRoute>
-            <ManageMembers></ManageMembers>
+            <ManageMembers />
           </AdminRoute>
         ),
       },
@@ -141,7 +146,7 @@ export const router = createBrowserRouter([
         path: "/All_Users",
         element: (
           <AdminRoute>
-            <AllUsers></AllUsers>
+            <AllUsers />
           </AdminRoute>
         ),
       },
@@ -149,7 +154,7 @@ export const router = createBrowserRouter([
         path: "/Manage_Bookings",
         element: (
           <AdminRoute>
-            <ManageBookings></ManageBookings>
+            <ManageBookings />
           </AdminRoute>
         ),
       },
@@ -157,7 +162,7 @@ export const router = createBrowserRouter([
         path: "/Manage_Coupons",
         element: (
           <AdminRoute>
-            <ManageCoupons></ManageCoupons>
+            <ManageCoupons />
           </AdminRoute>
         ),
       },
@@ -165,13 +170,17 @@ export const router = createBrowserRouter([
         path: "/Make_Announcement",
         element: (
           <AdminRoute>
-            <ManageAnnouncements></ManageAnnouncements>
+            <ManageAnnouncements />
           </AdminRoute>
         ),
       },
       {
         path: "/Announcements",
         Component: Announcements,
+      },
+      {
+        path: "/forbidden", // 🔒 make sure this stays relative too
+        Component: Forbidden,
       },
     ],
   },

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
 import moment from "moment";
+import useAxios from "../../hooks/useAxios";
+import Loading from "../../Component/Loading";
 
 const ManageAnnouncements = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -10,24 +11,29 @@ const ManageAnnouncements = () => {
   const [formData, setFormData] = useState({ title: "", description: "" });
   const [editingId, setEditingId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const axiosSecure = useAxios();
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  useEffect(() => {
-    fetchAnnouncements();
-  }, []);
-
   const fetchAnnouncements = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/announcements");
+      setLoading(true);
+      const res = await axiosSecure.get("/announcements");
       setAnnouncements(res.data.reverse());
       setFiltered(res.data.reverse());
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchAnnouncements();
+  }, []);
 
   const handleSearch = (e) => {
     const value = e.target.value.toLowerCase();
@@ -50,9 +56,7 @@ const ManageAnnouncements = () => {
 
     if (confirm.isConfirmed) {
       try {
-        const res = await axios.delete(
-          `http://localhost:5000/announcements/${id}`
-        );
+        const res = await axiosSecure.delete(`/announcements/${id}`);
         if (res.data.deletedCount > 0) {
           Swal.fire("Deleted!", "Announcement deleted", "success");
           fetchAnnouncements();
@@ -77,13 +81,10 @@ const ManageAnnouncements = () => {
 
     try {
       if (editingId) {
-        await axios.patch(
-          `http://localhost:5000/announcements/${editingId}`,
-          payload
-        );
+        await axiosSecure.patch(`/announcements/${editingId}`, payload);
         Swal.fire("Updated", "Announcement updated", "success");
       } else {
-        await axios.post("http://localhost:5000/announcements", payload);
+        await axiosSecure.post("/announcements", payload);
         Swal.fire("Added", "Announcement posted", "success");
       }
 
@@ -117,6 +118,13 @@ const ManageAnnouncements = () => {
   const currentItems = filtered.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
 
+  if (loading) {
+    return (
+      <div className="text-center mt-10 text-lg text-gray-600">
+        <Loading></Loading>
+      </div>
+    );
+  }
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
       <h2 className="text-3xl font-bold text-center text-primary mb-6">

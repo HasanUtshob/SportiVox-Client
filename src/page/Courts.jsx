@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { FaClock, FaDollarSign, FaMapMarkerAlt } from "react-icons/fa";
-import axios from "axios";
 import BookingModal from "./BookingModal";
 import useAuth from "../hooks/useAuth";
 import { useLocation, useNavigate } from "react-router";
 import Swal from "sweetalert2";
+import useAxios from "../hooks/useAxios";
+import Loading from "../Component/Loading";
 
 const Courts = () => {
   const { user } = useAuth();
@@ -14,7 +15,9 @@ const Courts = () => {
   const [courts, setCourts] = useState([]);
   const [selectedCourt, setSelectedCourt] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState("cards"); // 'cards' or 'table'
+  const [viewMode, setViewMode] = useState("cards");
+  const [loading, setLoading] = useState(true);
+  const axiosSecure = useAxios();
 
   // Pagination constants
   const CARDS_PER_PAGE = 6;
@@ -22,14 +25,20 @@ const Courts = () => {
   const TABLE_ROWS_PER_PAGE = 10;
   const MIN_TABLE_DATA = 15;
 
-  const fetchCourts = async () => {
-    const res = await axios.get("http://localhost:5000/courts");
-    setCourts(res.data);
-  };
-
   useEffect(() => {
+    const fetchCourts = async () => {
+      setLoading(true);
+      try {
+        const res = await axiosSecure.get("/courts");
+        setCourts(res.data);
+      } catch (e) {
+        setCourts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchCourts();
-  }, []);
+  }, [axiosSecure]);
 
   // Calculate pagination values
   const itemsPerPage =
@@ -54,7 +63,17 @@ const Courts = () => {
       // Clean up location state so it doesn't reopen again on refresh
       navigate(location.pathname, { replace: true });
     }
-  }, [location]);
+  }, [location, navigate]);
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  if (!courts.length) {
+    return (
+      <div className="text-center py-8 text-gray-500">No More Code Found</div>
+    );
+  }
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <h2 className="text-3xl font-bold text-center text-primary mb-8">
@@ -81,12 +100,12 @@ const Courts = () => {
         {/* Data count validation */}
         {viewMode === "cards" && courts.length < MIN_CARDS_DATA && (
           <div className="badge badge-warning gap-2">
-            Minimum {MIN_CARDS_DATA} courts recommended for cards view
+            Minimum {MIN_CARDS_DATA} courts for cards view
           </div>
         )}
         {viewMode === "table" && courts.length < MIN_TABLE_DATA && (
           <div className="badge badge-warning gap-2">
-            Minimum {MIN_TABLE_DATA} courts recommended for table view
+            Minimum {MIN_TABLE_DATA} courts for table view
           </div>
         )}
       </div>

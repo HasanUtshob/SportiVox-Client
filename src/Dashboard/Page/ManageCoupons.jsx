@@ -1,35 +1,43 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
+import useAxios from "../../hooks/useAxios";
+import Loading from "../../Component/Loading"; // নিশ্চিতভাবে import path ঠিক রাখবেন
 
 const ManageCoupons = () => {
   const [coupons, setCoupons] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [newCoupon, setNewCoupon] = useState({
     code: "",
     discount: "",
     description: "",
   });
   const [editingId, setEditingId] = useState(null);
+  const axiosSecure = useAxios();
 
+  // fetchCoupons ফাংশন component scope-এ রাখুন
   const fetchCoupons = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/all_coupons");
+      setLoading(true);
+      const res = await axiosSecure.get("/all_coupons");
       setCoupons(res.data);
     } catch (err) {
       console.error("Failed to fetch coupons", err);
+      setCoupons([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchCoupons();
-  }, []);
+  }, [axiosSecure]);
 
   const openModal = (coupon = null) => {
     if (coupon) {
       setNewCoupon({
         code: coupon.code,
-        discount: coupon.value?.toString() || "", // ✅ এটা ঠিক করো
+        discount: coupon.value?.toString() || "",
         description: coupon.description || "",
       });
       setEditingId(coupon._id);
@@ -57,26 +65,25 @@ const ManageCoupons = () => {
       code: code.trim().toUpperCase(),
       type: "percent",
       value: percent,
-      description: description?.trim() || "", // ensure it's string
+      description: description?.trim() || "",
     };
 
     try {
       if (editingId) {
-        const res = await axios.patch(
-          `http://localhost:5000/coupons/${editingId}`,
-          payload
-        );
+        const res = await axiosSecure.patch(`/coupons/${editingId}`, payload);
         if (res.data.modifiedCount > 0) {
           Swal.fire("Updated", "Coupon updated successfully", "success");
+          await fetchCoupons(); // লিস্ট রিফ্রেশ করুন
+          setShowModal(false);
         }
       } else {
-        const res = await axios.post("http://localhost:5000/coupons", payload);
+        const res = await axiosSecure.post("/coupons", payload);
         if (res.data.insertedId) {
           Swal.fire("Added", "Coupon added successfully", "success");
+          await fetchCoupons(); // লিস্ট রিফ্রেশ করুন
+          setShowModal(false);
         }
       }
-      setShowModal(false);
-      fetchCoupons();
     } catch (err) {
       console.error(err);
       Swal.fire("Error", "Something went wrong", "error");
@@ -94,10 +101,10 @@ const ManageCoupons = () => {
 
     if (result.isConfirmed) {
       try {
-        const res = await axios.delete(`http://localhost:5000/coupons/${id}`);
+        const res = await axiosSecure.delete(`/coupons/${id}`);
         if (res.data.deletedCount > 0) {
           Swal.fire("Deleted", "Coupon removed", "success");
-          fetchCoupons();
+          await fetchCoupons(); // লিস্ট রিফ্রেশ করুন
         }
       } catch (err) {
         console.error("Delete error:", err);
@@ -106,6 +113,13 @@ const ManageCoupons = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="text-center mt-10 text-lg text-gray-600">
+        <Loading />
+      </div>
+    );
+  }
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
       <h2 className="text-3xl font-bold text-center text-primary mb-8">
@@ -150,6 +164,13 @@ const ManageCoupons = () => {
                 </td>
               </tr>
             ))}
+            {coupons.length === 0 && (
+              <tr>
+                <td colSpan={4} className="text-center text-gray-400 py-6">
+                  No coupons found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -194,7 +215,10 @@ const ManageCoupons = () => {
               <button
                 type="button"
                 className="btn btn-outline"
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setNewCoupon({ code: "", discount: "", description: "" }); // Clear form
+                }}
               >
                 Cancel
               </button>

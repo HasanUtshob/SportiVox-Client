@@ -3,12 +3,13 @@ import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import { FaCalendarAlt, FaClock } from "react-icons/fa";
 import Swal from "sweetalert2";
-import axios from "axios";
+import useAxios from "../hooks/useAxios";
 
 const BookingModal = ({ court, onClose, user }) => {
   const { handleSubmit } = useForm();
   const [slotsSelected, setSlotsSelected] = useState([]);
   const [date, setDate] = useState("");
+  const axiosSecure = useAxios();
 
   const slotOptions = [
     "8:00 AM - 9:00 AM",
@@ -43,7 +44,7 @@ const BookingModal = ({ court, onClose, user }) => {
     };
 
     try {
-      await axios.post("http://localhost:5000/bookings", bookingData);
+      await axiosSecure.post("/bookings", bookingData);
       Swal.fire("Success!", "Your booking request has been sent!", "success");
       onClose();
     } catch (err) {

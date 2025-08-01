@@ -1,6 +1,5 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import axios from "axios";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
 import {
@@ -10,8 +9,10 @@ import {
   FaMoneyBillWave,
   FaEdit,
 } from "react-icons/fa";
+import useAxios from "../../../hooks/useAxios";
 
 const UpdateCourtForm = ({ court, onClose }) => {
+  const axiosSecure = useAxios();
   const {
     register,
     handleSubmit,
@@ -26,10 +27,7 @@ const UpdateCourtForm = ({ court, onClose }) => {
   });
   const onSubmit = async (data) => {
     try {
-      const response = await axios.put(
-        `http://localhost:5000/courts/${court._id}`,
-        data
-      );
+      const response = await axiosSecure.put(`/courts/${court._id}`, data);
       if (response.data.modifiedCount > 0) {
         Swal.fire("Success", "Court updated successfully", "success");
         onClose();

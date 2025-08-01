@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { FaTag } from "react-icons/fa";
-import axios from "axios";
+import useAxios from "../hooks/useAxios";
 
 const PromotionsSection = () => {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
+  const axiosSecure = useAxios();
 
   useEffect(() => {
     const fetchCoupons = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/all_coupons");
+        const res = await axiosSecure.get("/all_coupons");
         setCoupons(res.data);
       } catch (err) {
         console.error("Error fetching coupons:", err);

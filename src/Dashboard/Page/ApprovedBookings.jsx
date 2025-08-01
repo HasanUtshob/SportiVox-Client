@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
 import { MdVerified } from "react-icons/md";
 import PaymentModal from "../../Payment/PaymentModal";
 import useAuth from "../../hooks/useAuth";
+import useAxios from "../../hooks/useAxios";
+import Loading from "../../Component/Loading";
 
 const ApprovedBookings = () => {
   const { user } = useAuth();
+  const axiosSecure = useAxios();
   const [approvedBookings, setApprovedBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState(null);
 
   const fetchApprovedBookings = async () => {
+    setLoading(true);
     try {
-      const res = await axios.get(
-        `http://localhost:5000/bookings?status=approved&email=${user?.email}`
+      const res = await axiosSecure.get(
+        `/bookings?status=approved&email=${user?.email}`
       );
       setApprovedBookings(res.data);
     } catch (err) {
@@ -43,7 +46,7 @@ const ApprovedBookings = () => {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`http://localhost:5000/bookings/${id}`);
+        await axiosSecure.delete(`/bookings/${id}`);
         Swal.fire("Cancelled!", "The booking has been removed.", "success");
         setApprovedBookings((prev) => prev.filter((b) => b._id !== id));
       } catch (err) {
@@ -70,7 +73,7 @@ const ApprovedBookings = () => {
 
       {loading ? (
         <div className="text-center mt-10 text-lg">
-          Loading approved bookings...
+          <Loading></Loading>
         </div>
       ) : approvedBookings.length === 0 ? (
         <div className="text-center text-gray-500">No approved bookings.</div>

@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router";
+import React from "react";
+import { Link, NavLink } from "react-router"; // ✅ ঠিক path
 import logo from "../assets/Images/logo.png";
 import useAuth from "../hooks/useAuth";
 import Swal from "sweetalert2";
-import axios from "axios";
 import { motion } from "framer-motion";
 import {
   FaSignOutAlt,
@@ -12,40 +11,31 @@ import {
   FaThLarge,
   FaSignInAlt,
 } from "react-icons/fa";
+import Loading from "../Component/Loading";
 
 const Navber = () => {
-  const { user, SignOut } = useAuth();
-  const [userData, setuserData] = useState(null);
-
-  const fetchData = async () => {
-    const email = user?.email;
-    if (email) {
-      try {
-        const res = await axios.get(
-          `http://localhost:5000/Users?email=${email}`
-        );
-        setuserData(res.data[0]);
-      } catch (error) {
-        console.error("Failed to load user data:", error);
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [user]);
+  const { user, userData, userDataLoading, SignOut } = useAuth();
 
   const handleLogout = () => {
     SignOut().then(() => {
       Swal.fire({
         position: "top-end",
         icon: "success",
-        title: "Sign Out Successfully",
+        title: "সফলভাবে সাইন আউট হয়েছে",
         showConfirmButton: false,
         timer: 1500,
       });
     });
   };
+
+  // যদি user আছে কিন্তু userData এখনো load হচ্ছে
+  if (user && userDataLoading) {
+    return (
+      <div className="text-center mt-10 text-lg text-gray-600">
+        <Loading message="ব্যবহারকারীর তথ্য লোড হচ্ছে..." />
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -87,7 +77,7 @@ const Navber = () => {
           <div className="dropdown dropdown-end">
             <label
               tabIndex={0}
-              className="btn btn-ghost btn-circle avatar tooltip"
+              className="btn btn-ghost btn-circle avatar tooltip-bottom"
               data-tip={userData?.name}
             >
               <div className="w-10 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">

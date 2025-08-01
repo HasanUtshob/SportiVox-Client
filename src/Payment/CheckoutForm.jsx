@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import axios from "axios";
 import Swal from "sweetalert2";
+import useAxios from "../hooks/useAxios";
 
 const CheckoutForm = ({ booking, onClose, onPaymentSuccess }) => {
   const stripe = useStripe();
@@ -12,6 +12,7 @@ const CheckoutForm = ({ booking, onClose, onPaymentSuccess }) => {
   const [appliedCoupon, setAppliedCoupon] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState([]);
   const [processing, setProcessing] = useState(false);
+  const axiosSecure = useAxios();
 
   const totalPrice = booking.slots.length * booking.price;
   const finalPrice = Math.max(0, totalPrice - discount); // No negative price
@@ -20,7 +21,7 @@ const CheckoutForm = ({ booking, onClose, onPaymentSuccess }) => {
   useEffect(() => {
     const fetchCoupons = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/coupons");
+        const res = await axiosSecure.get("/coupons");
         setAvailableCoupons(res.data);
       } catch (err) {
         console.error("Failed to load coupons", err);
@@ -44,8 +45,8 @@ const CheckoutForm = ({ booking, onClose, onPaymentSuccess }) => {
     }
 
     try {
-      const res = await axios.get(
-        `http://localhost:5000/coupons?code=${couponCode.trim().toUpperCase()}`
+      const res = await axiosSecure.get(
+        `/coupons?code=${couponCode.trim().toUpperCase()}`
       );
       const coupon = res.data;
 
@@ -83,12 +84,9 @@ const CheckoutForm = ({ booking, onClose, onPaymentSuccess }) => {
     setProcessing(true);
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/create-payment-intent",
-        {
-          amount: finalPrice,
-        }
-      );
+      const res = await axiosSecure.post("/create-payment-intent", {
+        amount: finalPrice,
+      });
 
       const { clientSecret } = res.data;
 
@@ -113,18 +111,27 @@ const CheckoutForm = ({ booking, onClose, onPaymentSuccess }) => {
           status: "Paid",
         };
 
-        await axios.post("http://localhost:5000/payments", paymentInfo);
+        await axiosSecure.post("/payments", paymentInfo);
 
         // Update booking status
-        await axios.patch(
-          `http://localhost:5000/bookings/payment/${booking._id}`,
-          { paymentStatus: "paid" }
-        );
+        await axiosSecure.patch(`/bookings/payment/${booking._id}`, {
+          paymentStatus: "paid",
+        });
 
-        Swal.fire("✅ Success", "Payment completed successfully", "success");
-        if (onClose) onClose();
-        if (onPaymentSuccess) onPaymentSuccess();
-        else window.location.reload();
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "✅ Success",
+          text: "Payment completed successfully",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+
+        setTimeout(() => {
+          if (onClose) onClose();
+          if (onPaymentSuccess) onPaymentSuccess();
+          else window.location.reload();
+        }, 1600);
       } else {
         Swal.fire("Payment Failed", "Transaction did not succeed", "error");
       }
@@ -135,7 +142,7 @@ const CheckoutForm = ({ booking, onClose, onPaymentSuccess }) => {
       setProcessing(false);
     }
   };
-
+  // Swal.fire("✅ Success", "Payment completed successfully", "success");
   return (
     <form
       onSubmit={handleSubmit}

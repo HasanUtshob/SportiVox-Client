@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
+import useAxios from "../../hooks/useAxios";
+import Loading from "../../Component/Loading";
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
-
+  const axiosSecure = useAxios();
   const fetchUsers = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/users?role=users");
+      setLoading(true);
+      const res = await axiosSecure.get("/users?role=users");
       setUsers(res.data);
       setFilteredUsers(res.data);
     } catch (err) {
@@ -35,25 +37,6 @@ const AllUsers = () => {
     setFilteredUsers(filtered);
   };
 
-  const handleRoleChange = async (email, newRole) => {
-    try {
-      const res = await axios.patch(
-        `http://localhost:5000/users/role/${email}`,
-        { role: newRole }
-      );
-
-      if (res.data.modifiedCount > 0) {
-        Swal.fire("Updated!", `Role updated to "${newRole}"`, "success");
-        fetchUsers(); // Refresh list
-      } else {
-        Swal.fire("No Change", "Role was not updated.", "info");
-      }
-    } catch (err) {
-      console.error("Role update error:", err);
-      Swal.fire("Error", "Could not update role.", "error");
-    }
-  };
-
   const handleDeleteUser = async (email) => {
     const result = await Swal.fire({
       title: "Delete User?",
@@ -67,7 +50,7 @@ const AllUsers = () => {
 
     if (result.isConfirmed) {
       try {
-        const res = await axios.delete(`http://localhost:5000/users/${email}`);
+        const res = await axiosSecure.delete(`/users/${email}`);
         if (res.data.deletedCount > 0) {
           Swal.fire("Deleted!", "User has been removed.", "success");
           fetchUsers();
@@ -98,7 +81,7 @@ const AllUsers = () => {
       </div>
 
       {loading ? (
-        <p className="text-center">Loading users...</p>
+        <Loading></Loading>
       ) : filteredUsers.length === 0 ? (
         <p className="text-center text-gray-500">No users found.</p>
       ) : (
@@ -134,8 +117,8 @@ const AllUsers = () => {
                           }).then(async (result) => {
                             if (result.isConfirmed) {
                               try {
-                                const res = await axios.patch(
-                                  `http://localhost:5000/users/role/${user.email}`,
+                                const res = await axiosSecure.patch(
+                                  `/users/role/${user.email}`,
                                   { role: newRole }
                                 );
 

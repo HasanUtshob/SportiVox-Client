@@ -1,28 +1,34 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { FaBullhorn, FaSearch } from "react-icons/fa";
 import moment from "moment";
 import { motion, AnimatePresence } from "framer-motion";
+import useAxios from "../../hooks/useAxios";
+import Loading from "../../Component/Loading";
 
 const Announcements = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const axiosSecure = useAxios();
   const perPage = 4;
 
   useEffect(() => {
-    fetchAnnouncements();
-  }, []);
+    const fetchAnnouncements = async () => {
+      setLoading(true);
+      try {
+        const res = await axiosSecure.get("/announcements");
+        setAnnouncements(res.data.reverse());
+      } catch (err) {
+        console.error("Failed to fetch announcements", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchAnnouncements = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/announcements");
-      setAnnouncements(res.data.reverse());
-    } catch (err) {
-      console.error("Failed to fetch announcements", err);
-    }
-  };
+    fetchAnnouncements();
+  }, [axiosSecure]);
 
   const filtered = announcements.filter((a) =>
     a.title.toLowerCase().includes(search.toLowerCase())
@@ -33,6 +39,14 @@ const Announcements = () => {
     (currentPage - 1) * perPage,
     currentPage * perPage
   );
+
+  if (loading) {
+    return (
+      <div className="text-center mt-10 text-lg text-gray-600">
+        <Loading></Loading>
+      </div>
+    );
+  }
 
   return (
     <section className="max-w-5xl mx-auto px-4 py-10">

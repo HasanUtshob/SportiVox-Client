@@ -1,30 +1,32 @@
 import React, { useEffect, useState } from "react";
 import useAuth from "../hooks/useAuth";
-import axios from "axios";
 import { FaMoneyCheckAlt, FaUser, FaHashtag } from "react-icons/fa";
 import { MdDateRange } from "react-icons/md";
 import { BsCurrencyDollar, BsReceipt } from "react-icons/bs";
+import useAxios from "../hooks/useAxios";
+import Loading from "../Component/Loading";
 
 const PaymentHistory = () => {
   const { user } = useAuth();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showTable, setShowTable] = useState(true); // toggle layout
+  const axiosSecure = useAxios();
 
   useEffect(() => {
     if (user?.email) {
-      axios
-        .get(`http://localhost:5000/payments?email=${user.email}`)
+      axiosSecure
+        .get(`/payments?email=${user.email}`)
         .then((res) => setPayments(res.data))
         .catch((err) => console.error("Payment fetch error", err))
         .finally(() => setLoading(false));
     }
-  }, [user?.email]);
+  }, [user?.email, axiosSecure]);
 
   if (loading) {
     return (
       <div className="text-center py-10 text-lg font-semibold text-primary">
-        Loading payment history...
+        <Loading></Loading>
       </div>
     );
   }

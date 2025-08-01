@@ -1,19 +1,29 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
 import { FaTrash, FaEdit, FaPlus } from "react-icons/fa";
 import AddCourtForm from "./Component/AddCourtForm";
 import UpdateCourtForm from "./Component/UpdateCourtForm";
 import { motion } from "framer-motion";
+import useAxios from "../../hooks/useAxios";
+import Loading from "../../Component/Loading";
 
 const ManageCourts = () => {
   const [courts, setCourts] = useState([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedCourt, setSelectedCourt] = useState(null); // for update modal
+  const [loading, setLoading] = useState(true);
+  const axiosSecure = useAxios();
 
   const fetchCourts = async () => {
-    const res = await axios.get("http://localhost:5000/courts");
-    setCourts(res.data);
+    try {
+      setLoading(true);
+      const res = await axiosSecure.get("/courts");
+      setCourts(res.data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -29,7 +39,7 @@ const ManageCourts = () => {
       confirmButtonText: "Yes, delete it!",
     });
     if (confirm.isConfirmed) {
-      await axios.delete(`http://localhost:5000/courts/${id}`);
+      await axiosSecure.delete(`/courts/${id}`);
       fetchCourts();
       Swal.fire("Deleted!", "Court has been deleted.", "success");
     }
@@ -44,6 +54,14 @@ const ManageCourts = () => {
     setSelectedCourt(null);
     fetchCourts();
   };
+
+  if (loading) {
+    return (
+      <div>
+        <Loading></Loading>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto">
