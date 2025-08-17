@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   FaUsers,
   FaUserShield,
@@ -6,17 +6,21 @@ import {
   FaMoneyCheckAlt,
   FaCheckCircle,
   FaHourglassHalf,
+  FaChartPie,
+  FaTrophy,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import useAuth from "../../../hooks/useAuth";
 import useAxios from "../../../hooks/useAxios";
-import Loading from "../../../Component/Loading"; // লোডিং কম্পোনেন্ট ইম্পোর্ট
+import Loading from "../../../Component/Loading";
+import { Themecontext } from "../../../Context/ThemeContext";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const StateCard = () => {
+  const { darkmode } = useContext(Themecontext);
   const { user, loading: userLoading } = useAuth();
   const axiosSecure = useAxios();
 
@@ -31,7 +35,7 @@ const StateCard = () => {
   });
 
   const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true); // ✅ লোডিং স্টেট
+  const [loading, setLoading] = useState(true);
 
   // User data fetch
   const fetchUserData = async () => {
@@ -49,11 +53,10 @@ const StateCard = () => {
     }
   };
 
-  // userData লোড
   useEffect(() => {
     if (user) {
-      setLoading(true); // যেই user এলো, তখন loading true
-      fetchUserData().finally(() => setLoading(false)); // data এলে false
+      setLoading(true);
+      fetchUserData().finally(() => setLoading(false));
     } else {
       setLoading(false);
     }
@@ -63,7 +66,7 @@ const StateCard = () => {
   // All stats (admin summary)
   const fetchStats = async () => {
     try {
-      setLoading(true); // আবার loading
+      setLoading(true);
       const [usersRes, membersRes, courtsRes, bookingsRes] = await Promise.all([
         axiosSecure.get("/users"),
         axiosSecure.get("/members"),
@@ -93,7 +96,6 @@ const StateCard = () => {
     }
   };
 
-  // userData এলো, তখনই stats লোড
   useEffect(() => {
     if (user && userData?.role === "admin") {
       fetchStats();
@@ -101,7 +103,6 @@ const StateCard = () => {
     // eslint-disable-next-line
   }, [user, userData?.role]);
 
-  // loading বা ডাটা না এলে কিছুই দেখাবেন না (সরাসরি Loader)
   if (userLoading || loading || !user || !userData) return <Loading />;
 
   // Pie chart for user roles
@@ -116,8 +117,18 @@ const StateCard = () => {
     datasets: [
       {
         data: [roleCounts.admin, roleCounts.member, roleCounts.user],
-        backgroundColor: ["#8e44ad", "#27ae60", "#3498db"],
-        borderWidth: 1,
+        backgroundColor: [
+          "rgba(139, 69, 19, 0.8)",
+          "rgba(34, 197, 94, 0.8)",
+          "rgba(59, 130, 246, 0.8)",
+        ],
+        borderColor: [
+          "rgba(139, 69, 19, 1)",
+          "rgba(34, 197, 94, 1)",
+          "rgba(59, 130, 246, 1)",
+        ],
+        borderWidth: 2,
+        hoverOffset: 10,
       },
     ],
   };
@@ -127,90 +138,278 @@ const StateCard = () => {
     datasets: [
       {
         data: [bookingStats.paid, bookingStats.pending, bookingStats.approved],
-        backgroundColor: ["#2ecc71", "#f1c40f", "#9b59b6"],
-        borderWidth: 1,
+        backgroundColor: [
+          "rgba(16, 185, 129, 0.8)",
+          "rgba(245, 158, 11, 0.8)",
+          "rgba(168, 85, 247, 0.8)",
+        ],
+        borderColor: [
+          "rgba(16, 185, 129, 1)",
+          "rgba(245, 158, 11, 1)",
+          "rgba(168, 85, 247, 1)",
+        ],
+        borderWidth: 2,
+        hoverOffset: 10,
       },
     ],
   };
 
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+          font: {
+            size: 12,
+            weight: "bold",
+          },
+          color: darkmode ? "#D1D5DB" : "#374151",
+        },
+      },
+      tooltip: {
+        backgroundColor: darkmode
+          ? "rgba(31, 41, 55, 0.95)"
+          : "rgba(0, 0, 0, 0.8)",
+        titleColor: "white",
+        bodyColor: "white",
+        borderColor: darkmode
+          ? "rgba(75, 85, 99, 0.5)"
+          : "rgba(255, 255, 255, 0.2)",
+        borderWidth: 1,
+      },
+    },
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="max-w-6xl mx-auto p-6 bg-white border rounded-xl shadow-xl"
-    >
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {userData?.role === "admin" && (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-5 mb-8">
+          {/* Welcome Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <div
+              className={`inline-flex items-center space-x-3 ${
+                darkmode
+                  ? "bg-gray-800/90 border-gray-700/50"
+                  : "bg-white/80 border-white/20"
+              } backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg border`}
+            >
+              <FaTrophy className="text-yellow-500 text-2xl" />
+              <span
+                className={`text-lg font-semibold ${
+                  darkmode ? "text-gray-200" : "text-gray-700"
+                }`}
+              >
+                Welcome back, Admin! 👋
+              </span>
+            </div>
+          </motion.div>
+
+          {/* Stats Cards Grid */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"
+          >
             <StatCard
               icon={<FaTableTennis />}
-              title="Courts"
+              title="Total Courts"
               count={courtsCount}
-              color="from-blue-200 to-blue-300"
+              gradient="from-blue-500 to-cyan-500"
+              bgGradient={
+                darkmode
+                  ? "from-blue-900/30 to-cyan-900/30"
+                  : "from-blue-50 to-cyan-50"
+              }
+              delay={0.1}
             />
             <StatCard
               icon={<FaUsers />}
-              title="Users"
+              title="Total Users"
               count={users.length}
-              color="from-green-200 to-green-300"
+              gradient="from-emerald-500 to-teal-500"
+              bgGradient={
+                darkmode
+                  ? "from-emerald-900/30 to-teal-900/30"
+                  : "from-emerald-50 to-teal-50"
+              }
+              delay={0.2}
             />
             <StatCard
               icon={<FaUserShield />}
               title="Members"
               count={membersCount}
-              color="from-pink-200 to-pink-300"
+              gradient="from-pink-500 to-rose-500"
+              bgGradient={
+                darkmode
+                  ? "from-pink-900/30 to-rose-900/30"
+                  : "from-pink-50 to-rose-50"
+              }
+              delay={0.3}
             />
             <StatCard
               icon={<FaMoneyCheckAlt />}
-              title="Paid"
+              title="Paid Bookings"
               count={bookingStats.paid}
-              color="from-emerald-200 to-emerald-300"
+              gradient="from-green-500 to-emerald-500"
+              bgGradient={
+                darkmode
+                  ? "from-green-900/30 to-emerald-900/30"
+                  : "from-green-50 to-emerald-50"
+              }
+              delay={0.4}
             />
             <StatCard
               icon={<FaHourglassHalf />}
               title="Pending"
               count={bookingStats.pending}
-              color="from-yellow-200 to-yellow-300"
+              gradient="from-yellow-500 to-orange-500"
+              bgGradient={
+                darkmode
+                  ? "from-yellow-900/30 to-orange-900/30"
+                  : "from-yellow-50 to-orange-50"
+              }
+              delay={0.5}
             />
             <StatCard
               icon={<FaCheckCircle />}
               title="Approved"
               count={bookingStats.approved}
-              color="from-indigo-200 to-indigo-300"
+              gradient="from-purple-500 to-indigo-500"
+              bgGradient={
+                darkmode
+                  ? "from-purple-900/30 to-indigo-900/30"
+                  : "from-purple-50 to-indigo-50"
+              }
+              delay={0.6}
             />
-          </div>
-          <div className="md:w-[700px] mx-auto grid md:grid-cols-2 gap-6">
-            <ChartCard title="User Roles Distribution" data={userRolePieData} />
+          </motion.div>
+
+          {/* Charts Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="grid md:grid-cols-2 gap-8"
+          >
             <ChartCard
-              title="Booking Status Distribution"
-              data={bookingStatusPieData}
+              title="User Roles Distribution"
+              data={userRolePieData}
+              options={chartOptions}
+              icon={<FaUsers />}
+              delay={0.1}
             />
-          </div>
+            <ChartCard
+              title="Booking Status Overview"
+              data={bookingStatusPieData}
+              options={chartOptions}
+              icon={<FaChartPie />}
+              delay={0.2}
+            />
+          </motion.div>
         </>
       )}
+    </div>
+  );
+};
+
+const StatCard = ({ icon, title, count, gradient, bgGradient, delay }) => {
+  const { darkmode } = useContext(Themecontext);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.6, delay }}
+      whileHover={{ y: -8, scale: 1.02 }}
+      className={`relative bg-gradient-to-br ${bgGradient} p-6 rounded-3xl shadow-xl ${
+        darkmode ? "border-gray-700/50" : "border-white/20"
+      } border overflow-hidden group`}
+    >
+      {/* Background Decoration */}
+      <div
+        className={`absolute top-0 right-0 w-20 h-20 ${
+          darkmode ? "bg-white/5" : "bg-white/10"
+        } rounded-full -translate-y-10 translate-x-10`}
+      ></div>
+      <div
+        className={`absolute bottom-0 left-0 w-16 h-16 ${
+          darkmode ? "bg-white/3" : "bg-white/5"
+        } rounded-full translate-y-8 -translate-x-8`}
+      ></div>
+
+      <div className="relative z-10 flex items-center space-x-4">
+        <div
+          className={`p-4 bg-gradient-to-br ${gradient} text-white rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
+        >
+          <div className="text-2xl">{icon}</div>
+        </div>
+        <div>
+          <h4
+            className={`text-sm font-semibold mb-1 ${
+              darkmode ? "text-gray-400" : "text-gray-600"
+            }`}
+          >
+            {title}
+          </h4>
+          <p
+            className={`text-3xl font-bold ${
+              darkmode ? "text-gray-100" : "text-gray-800"
+            }`}
+          >
+            {count}
+          </p>
+        </div>
+      </div>
     </motion.div>
   );
 };
 
-const StatCard = ({ icon, title, count, color }) => (
-  <motion.div
-    whileHover={{ scale: 1.05 }}
-    className={`bg-gradient-to-br ${color} p-4 rounded-lg shadow text-center transition-all duration-300`}
-  >
-    <div className="text-3xl text-gray-700 mb-2">{icon}</div>
-    <h4 className="text-sm font-medium">{title}</h4>
-    <p className="text-xl font-bold text-gray-900">{count}</p>
-  </motion.div>
-);
+const ChartCard = ({ title, data, options, icon, delay }) => {
+  const { darkmode } = useContext(Themecontext);
 
-const ChartCard = ({ title, data }) => (
-  <div className="bg-white rounded-xl p-4 shadow border">
-    <h4 className="text-center text-base font-semibold text-gray-700 mb-3">
-      {title}
-    </h4>
-    <Pie data={data} />
-  </div>
-);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay }}
+      className={`${
+        darkmode
+          ? "bg-gray-800/90 border-gray-700/50"
+          : "bg-white/80 border-white/20"
+      } backdrop-blur-sm rounded-3xl p-6 shadow-2xl border hover:shadow-3xl transition-all duration-300`}
+    >
+      <div className="flex items-center space-x-3 mb-6">
+        <div
+          className={`p-3 ${
+            darkmode
+              ? "bg-gradient-to-br from-blue-600 to-purple-700"
+              : "bg-gradient-to-br from-blue-500 to-purple-600"
+          } text-white rounded-xl`}
+        >
+          {icon}
+        </div>
+        <h4
+          className={`text-xl font-bold ${
+            darkmode ? "text-gray-100" : "text-gray-800"
+          }`}
+        >
+          {title}
+        </h4>
+      </div>
+      <div className="h-80">
+        <Pie data={data} options={options} />
+      </div>
+    </motion.div>
+  );
+};
 
 export default StateCard;

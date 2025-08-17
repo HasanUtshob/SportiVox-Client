@@ -142,7 +142,7 @@ VITE_FIREBASE_APP_ID=your_firebase_app_id
 VITE_STRIPE_KEY=your_stripe_publishable_key
 
 # API Configuration
-VITE_API_URL=https://sportivo-x-server.vercel.app
+VITE_API_URL=http://localhost:5000
 ```
 
 4. **Start the development server**
@@ -265,7 +265,7 @@ npm run lint
 The application connects to a backend server deployed at:
 
 ```
-https://sportivo-x-server.vercel.app
+http://localhost:5000
 ```
 
 ### Key API Endpoints:

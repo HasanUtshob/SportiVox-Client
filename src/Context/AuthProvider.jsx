@@ -20,7 +20,7 @@ const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   // Server URL configuration
-  const SERVER_URL = "https://sportivo-x-server.vercel.app";
+  const SERVER_URL = "http://localhost:5000";
 
   // Create an Account
   const CreateUser = (email, password) => {

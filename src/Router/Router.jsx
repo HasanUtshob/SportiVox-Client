@@ -2,11 +2,19 @@ import { createBrowserRouter } from "react-router";
 import MainLayout from "../LayOut/MainLayout";
 import Home from "../page/Home";
 import Courts from "../page/Courts";
+import Demo from "../page/Demo";
 import AuthLayOut from "../LayOut/AuthLayOut";
 import SignIn from "../page/SignIn";
 import Register from "../page/Register";
 // import MyProfile from "../page/MyProfile";
 import About from "../Component/About";
+import ContactUs from "../page/ContactUs";
+import PrivacyPolicy from "../page/PrivacyPolicy";
+import TermsOfService from "../page/TermsOfService";
+import Support from "../page/Support";
+import CommunityForum from "../page/CommunityForum";
+import UserGuide from "../page/UserGuide";
+import Reviews from "../page/Reviews";
 import DashboardLayout from "../LayOut/DashboardLayout";
 import Dashboard from "../page/Dashboard";
 import ManageCourts from "../Dashboard/Page/ManageCourts";
@@ -41,8 +49,40 @@ export const router = createBrowserRouter([
         Component: Courts,
       },
       {
+        path: "/demo",
+        Component: Demo,
+      },
+      {
         path: "/About",
         Component: About,
+      },
+      {
+        path: "/Contact",
+        Component: ContactUs,
+      },
+      {
+        path: "/Privacy",
+        Component: PrivacyPolicy,
+      },
+      {
+        path: "/Terms",
+        Component: TermsOfService,
+      },
+      {
+        path: "/Support",
+        Component: Support,
+      },
+      {
+        path: "/Forum",
+        Component: CommunityForum,
+      },
+      {
+        path: "/Guide",
+        Component: UserGuide,
+      },
+      {
+        path: "/Reviews",
+        Component: Reviews,
       },
       {
         path: "*",
