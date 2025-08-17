@@ -12,6 +12,8 @@ import {
   FaMapMarkerAlt,
   FaClock,
   FaShieldAlt,
+  FaArrowRight,
+  FaChevronDown,
 } from "react-icons/fa";
 import { Themecontext } from "../Context/ThemeContext";
 import "swiper/css";
@@ -19,65 +21,67 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/effect-fade";
 
-// Custom pagination styles
+// Enhanced custom pagination styles with modern design
 const customPaginationStyles = `
   .custom-pagination-bullet {
     position: relative !important;
-    width: 60px !important;
-    height: 60px !important;
-    margin: 0 8px !important;
+    width: 50px !important;
+    height: 50px !important;
+    margin: 0 6px !important;
     border-radius: 50% !important;
     background: transparent !important;
     opacity: 1 !important;
     cursor: pointer !important;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    transform: scale(0.8) !important;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transform: scale(0.85) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     overflow: hidden !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
   }
 
   .custom-pagination-bullet.light-mode {
-    border: 2px solid rgba(255, 255, 255, 0.3) !important;
-    backdrop-filter: blur(10px) !important;
-    background: rgba(255, 255, 255, 0.1) !important;
+    border: 2px solid rgba(255, 255, 255, 0.25) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
   }
 
   .custom-pagination-bullet.dark-mode {
-    border: 2px solid rgba(156, 163, 175, 0.3) !important;
-    backdrop-filter: blur(10px) !important;
-    background: rgba(75, 85, 99, 0.2) !important;
+    border: 2px solid rgba(255, 255, 255, 0.15) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
   }
 
   .custom-pagination-bullet:hover {
-    transform: scale(1) !important;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+    transform: scale(1.05) !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2) !important;
   }
 
   .custom-pagination-bullet.light-mode:hover {
-    border-color: rgba(255, 255, 255, 0.6) !important;
-    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
   }
 
   .custom-pagination-bullet.dark-mode:hover {
-    border-color: rgba(156, 163, 175, 0.6) !important;
-    background: rgba(75, 85, 99, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
   }
 
   .custom-pagination-bullet.swiper-pagination-bullet-active {
-    transform: scale(1.2) !important;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4) !important;
+    transform: scale(1.15) !important;
+    box-shadow: 0 16px 50px rgba(59, 130, 246, 0.4) !important;
   }
 
   .custom-pagination-bullet.swiper-pagination-bullet-active.light-mode {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(147, 51, 234, 0.8)) !important;
-    border-color: rgba(255, 255, 255, 0.8) !important;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(147, 51, 234, 0.9)) !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
   }
 
   .custom-pagination-bullet.swiper-pagination-bullet-active.dark-mode {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.6), rgba(147, 51, 234, 0.6)) !important;
-    border-color: rgba(156, 163, 175, 0.8) !important;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(147, 51, 234, 0.8)) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
   }
 
   .bullet-inner {
@@ -93,68 +97,70 @@ const customPaginationStyles = `
 
   .bullet-progress {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: -2px;
+    left: -2px;
+    width: calc(100% + 4px);
+    height: calc(100% + 4px);
     border-radius: 50%;
-    background: conic-gradient(from 0deg, transparent 0deg, rgba(59, 130, 246, 0.3) 360deg);
+    background: conic-gradient(from 0deg, transparent 0deg, rgba(59, 130, 246, 0.6) 360deg);
     opacity: 0;
-    transition: opacity 0.4s ease;
+    transition: opacity 0.5s ease;
   }
 
   .custom-pagination-bullet.swiper-pagination-bullet-active .bullet-progress {
     opacity: 1;
-    animation: rotate 6s linear infinite;
+    animation: rotate 8s linear infinite;
   }
 
   .bullet-glow {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     transform: translate(-50%, -50%);
-    transition: all 0.4s ease;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .custom-pagination-bullet.light-mode .bullet-glow {
-    background: rgba(255, 255, 255, 0.4);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
   }
 
   .custom-pagination-bullet.dark-mode .bullet-glow {
-    background: rgba(156, 163, 175, 0.4);
-    box-shadow: 0 0 15px rgba(156, 163, 175, 0.3);
+    background: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
   }
 
   .custom-pagination-bullet.swiper-pagination-bullet-active .bullet-glow {
-    width: 30px;
-    height: 30px;
-    background: rgba(59, 130, 246, 0.6);
-    box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
   }
 
   .bullet-number {
     position: relative;
     z-index: 2;
-    font-size: 14px;
-    font-weight: 700;
-    transition: all 0.4s ease;
+    font-size: 13px;
+    font-weight: 800;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'Inter', system-ui, sans-serif;
   }
 
   .custom-pagination-bullet.light-mode .bullet-number {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.9);
   }
 
   .custom-pagination-bullet.dark-mode .bullet-number {
-    color: rgba(156, 163, 175, 0.8);
+    color: rgba(255, 255, 255, 0.7);
   }
 
   .custom-pagination-bullet.swiper-pagination-bullet-active .bullet-number {
     color: white;
-    font-size: 16px;
+    font-size: 15px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
 
   @keyframes rotate {
@@ -163,26 +169,39 @@ const customPaginationStyles = `
   }
 
   .swiper-pagination {
-    bottom: 30px !important;
+    bottom: 40px !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    gap: 10px !important;
+    gap: 8px !important;
+    z-index: 20 !important;
   }
 
   @media (max-width: 768px) {
     .custom-pagination-bullet {
-      width: 45px !important;
-      height: 45px !important;
-      margin: 0 4px !important;
+      width: 40px !important;
+      height: 40px !important;
+      margin: 0 3px !important;
     }
     
     .bullet-number {
-      font-size: 12px !important;
+      font-size: 11px !important;
     }
     
     .custom-pagination-bullet.swiper-pagination-bullet-active .bullet-number {
-      font-size: 14px !important;
+      font-size: 13px !important;
+    }
+
+    .swiper-pagination {
+      bottom: 25px !important;
+      gap: 6px !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .custom-pagination-bullet {
+      width: 35px !important;
+      height: 35px !important;
     }
   }
 `;
@@ -205,7 +224,7 @@ const Banner = () => {
     };
   }, []);
 
-  // Professional slides data with high-quality images
+  // Professional slides data with reduced text content
   const slides = [
     {
       id: 1,
@@ -213,18 +232,18 @@ const Banner = () => {
         "https://i.ibb.co.com/JRbZ2Kmv/mr-lee-f4-RBYs-Y2hx-A-unsplash-1.jpg",
       fallbackImage:
         "https://i.ibb.co.com/JRbZ2Kmv/mr-lee-f4-RBYs-Y2hx-A-unsplash-1.jpg",
-      category: "SPORTS EXCELLENCE",
+      category: "SPORTS HUB",
       title: "Welcome to SportivoX",
-      subtitle: "Your Premier Sports Management Platform",
+      subtitle: "Premier Sports Management",
       description:
-        "Experience world-class facilities and professional sports management with cutting-edge technology and personalized service that elevates your athletic journey.",
-      primaryBtn: "Book a Court",
-      secondaryBtn: "Watch Demo",
-      stats: { icon: <FaUsers />, value: "500+", label: "Active Members" },
+        "World-class facilities with cutting-edge technology for your athletic journey.",
+      primaryBtn: "Book Now",
+      secondaryBtn: "Demo",
+      stats: { icon: <FaUsers />, value: "500+", label: "Members" },
       features: [
-        { icon: <FaClock />, text: "24/7 Online Booking" },
-        { icon: <FaTrophy />, text: "Professional Coaching" },
-        { icon: <FaShieldAlt />, text: "Premium Facilities" },
+        { icon: <FaClock />, text: "24/7 Booking" },
+        { icon: <FaTrophy />, text: "Pro Coaching" },
+        { icon: <FaShieldAlt />, text: "Premium Courts" },
       ],
       gradient: "from-blue-900/90 via-purple-900/85 to-indigo-900/90",
       accentColor: "blue-500",
@@ -235,18 +254,18 @@ const Banner = () => {
         "https://images.unsplash.com/photo-1544717297-fa95b6ee9643?ixlib=rb-4.0.3&auto=format&fit=crop&w=2069&q=80",
       fallbackImage:
         "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-      category: "ELITE FACILITIES",
-      title: "State-of-the-Art Courts",
-      subtitle: "Premium Sports Infrastructure",
+      category: "ELITE COURTS",
+      title: "Modern Facilities",
+      subtitle: "Premium Infrastructure",
       description:
-        "Train like a champion with our world-class facilities, professional-grade equipment, and cutting-edge technology designed for peak performance.",
-      primaryBtn: "Explore Courts",
-      secondaryBtn: "Virtual Tour",
+        "Train with professional-grade equipment and cutting-edge technology.",
+      primaryBtn: "Explore",
+      secondaryBtn: "Tour",
       stats: { icon: <FaTrophy />, value: "50+", label: "Championships" },
       features: [
-        { icon: <FaStar />, text: "Olympic Standards" },
-        { icon: <FaPlay />, text: "Latest Equipment" },
-        { icon: <FaMapMarkerAlt />, text: "Climate Controlled" },
+        { icon: <FaStar />, text: "Olympic Grade" },
+        { icon: <FaPlay />, text: "Latest Tech" },
+        { icon: <FaMapMarkerAlt />, text: "Climate Control" },
       ],
       gradient: "from-emerald-900/90 via-teal-900/85 to-cyan-900/90",
       accentColor: "emerald-500",
@@ -257,18 +276,18 @@ const Banner = () => {
         "https://i.ibb.co.com/Jjp0CGYG/bruce-mars-g-Jt-Dg6-Wf-Ml-Q-unsplash-1.jpg",
       fallbackImage:
         "https://i.ibb.co.com/Jjp0CGYG/bruce-mars-g-Jt-Dg6-Wf-Ml-Q-unsplash-1.jpg",
-      category: "PROFESSIONAL TRAINING",
-      title: "Expert Coaching Programs",
-      subtitle: "Personalized Training Excellence",
+      category: "PRO TRAINING",
+      title: "Expert Coaching",
+      subtitle: "Personalized Programs",
       description:
-        "Elevate your game with certified coaches, customized training programs, and advanced performance analytics that unlock your true potential.",
-      primaryBtn: "Find Coach",
-      secondaryBtn: "Training Plans",
+        "Certified coaches with custom training and performance analytics.",
+      primaryBtn: "Get Coach",
+      secondaryBtn: "Plans",
       stats: { icon: <FaStar />, value: "4.9", label: "Rating" },
       features: [
-        { icon: <FaCheckCircle />, text: "Certified Coaches" },
-        { icon: <FaUsers />, text: "Custom Programs" },
-        { icon: <FaTrophy />, text: "Performance Analytics" },
+        { icon: <FaCheckCircle />, text: "Certified Staff" },
+        { icon: <FaUsers />, text: "Custom Plans" },
+        { icon: <FaTrophy />, text: "Analytics" },
       ],
       gradient: "from-orange-900/90 via-red-900/85 to-pink-900/90",
       accentColor: "orange-500",
@@ -278,21 +297,21 @@ const Banner = () => {
       image: "https://i.ibb.co.com/1JJgk43H/pexels-timmossholder-1080882-1.jpg",
       fallbackImage:
         "https://i.ibb.co.com/1JJgk43H/pexels-timmossholder-1080882-1.jpg",
-      category: "PROFESSIONAL TRAINING",
-      title: "Expert Coaching Programs",
-      subtitle: "Personalized Training Excellence",
+      category: "COMMUNITY",
+      title: "Sports Community",
+      subtitle: "Connect & Compete",
       description:
-        "Elevate your game with certified coaches, customized training programs, and advanced performance analytics that unlock your true potential.",
-      primaryBtn: "Find Coach",
-      secondaryBtn: "Training Plans",
-      stats: { icon: <FaStar />, value: "4.9", label: "Rating" },
+        "Join tournaments, meet players, and build lasting sports connections.",
+      primaryBtn: "Join Now",
+      secondaryBtn: "Events",
+      stats: { icon: <FaUsers />, value: "1K+", label: "Community" },
       features: [
-        { icon: <FaCheckCircle />, text: "Certified Coaches" },
-        { icon: <FaUsers />, text: "Custom Programs" },
-        { icon: <FaTrophy />, text: "Performance Analytics" },
+        { icon: <FaUsers />, text: "Tournaments" },
+        { icon: <FaTrophy />, text: "Competitions" },
+        { icon: <FaStar />, text: "Rankings" },
       ],
-      gradient: "from-orange-900/90 via-red-900/85 to-pink-900/90",
-      accentColor: "orange-500",
+      gradient: "from-purple-900/90 via-pink-900/85 to-red-900/90",
+      accentColor: "purple-500",
     },
     {
       id: 5,
@@ -300,21 +319,21 @@ const Banner = () => {
         "https://i.ibb.co.com/fVb2xcPQ/pexels-coco-championship-191448.jpg",
       fallbackImage:
         "https://i.ibb.co.com/fVb2xcPQ/pexels-coco-championship-191448.jpg",
-      category: "PROFESSIONAL TRAINING",
-      title: "Expert Coaching Programs",
-      subtitle: "Personalized Training Excellence",
+      category: "WELLNESS",
+      title: "Health & Fitness",
+      subtitle: "Complete Wellness",
       description:
-        "Elevate your game with certified coaches, customized training programs, and advanced performance analytics that unlock your true potential.",
-      primaryBtn: "Find Coach",
-      secondaryBtn: "Training Plans",
-      stats: { icon: <FaStar />, value: "4.9", label: "Rating" },
+        "Comprehensive fitness programs with nutrition and wellness support.",
+      primaryBtn: "Start Today",
+      secondaryBtn: "Programs",
+      stats: { icon: <FaShieldAlt />, value: "24/7", label: "Support" },
       features: [
-        { icon: <FaCheckCircle />, text: "Certified Coaches" },
-        { icon: <FaUsers />, text: "Custom Programs" },
-        { icon: <FaTrophy />, text: "Performance Analytics" },
+        { icon: <FaCheckCircle />, text: "Fitness Plans" },
+        { icon: <FaUsers />, text: "Nutrition" },
+        { icon: <FaTrophy />, text: "Wellness" },
       ],
-      gradient: "from-orange-900/90 via-red-900/85 to-pink-900/90",
-      accentColor: "orange-500",
+      gradient: "from-teal-900/90 via-green-900/85 to-emerald-900/90",
+      accentColor: "teal-500",
     },
   ];
 
@@ -529,167 +548,281 @@ const Banner = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30" />
 
-              {/* Content Container - Fully Responsive */}
-              <div className="relative h-full flex items-center justify-center px-4 sm:px-6 lg:px-8 xl:px-12">
+              {/* Enhanced Content Container with Modern Layout */}
+              <div className="relative h-full flex items-center justify-center px-4 sm:px-6 lg:px-8 xl:px-12 z-20">
                 <div className="max-w-7xl mx-auto w-full">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center min-h-[80vh]">
-                    {/* Main Content - Responsive Layout */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center min-h-[85vh]">
+                    {/* Main Content - Optimized Compact Layout */}
                     <motion.div
                       variants={containerVariants}
                       initial="hidden"
                       animate="visible"
-                      className="lg:col-span-7 text-center lg:text-left space-y-6 sm:space-y-8 lg:space-y-10"
+                      className="lg:col-span-8 text-center lg:text-left space-y-4 sm:space-y-5 lg:space-y-6"
                     >
-                      {/* Category Badge */}
+                      {/* Compact Category Badge */}
                       <motion.div variants={itemVariants}>
-                        <span
-                          className={`inline-flex items-center px-4 py-2 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm lg:text-base font-bold tracking-wider ${
-                            darkmode
-                              ? "bg-gray-800/40 border-gray-600/30 text-gray-200"
-                              : "bg-white/20 border-white/30 text-white"
-                          } backdrop-blur-sm border shadow-lg`}
-                        >
+                        <div className="flex justify-center lg:justify-start">
                           <span
-                            className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-${slide.accentColor} mr-2 sm:mr-3 animate-pulse`}
-                          ></span>
-                          {slide.category}
-                        </span>
+                            className={`inline-flex items-center px-3 py-2 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-bold tracking-wider ${
+                              darkmode
+                                ? "bg-white/5 border border-white/10 text-white/90 shadow-xl"
+                                : "bg-white/10 border border-white/20 text-white shadow-xl"
+                            } backdrop-blur-xl hover:scale-105 transition-all duration-500 cursor-default`}
+                            style={{
+                              background: darkmode
+                                ? "linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02))"
+                                : "linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))",
+                            }}
+                          >
+                            <span
+                              className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-gradient-to-r from-${
+                                slide.accentColor
+                              } to-${slide.accentColor.replace(
+                                "500",
+                                "400"
+                              )} mr-2 sm:mr-3 animate-pulse shadow-lg`}
+                            ></span>
+                            {slide.category}
+                          </span>
+                        </div>
                       </motion.div>
 
-                      {/* Main Title - Highly Responsive Typography */}
+                      {/* Compact Main Title with Better Typography */}
                       <motion.div
                         variants={itemVariants}
-                        className="space-y-4 sm:space-y-6"
+                        className="space-y-2 sm:space-y-3"
                       >
                         <h1
-                          className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black ${
-                            darkmode ? "text-gray-100" : "text-white"
-                          } leading-tight sm:leading-tight`}
+                          className={`font-black ${
+                            darkmode ? "text-white" : "text-white"
+                          } leading-tight tracking-tight`}
+                          style={{
+                            fontSize: "clamp(1.25rem, 3.5vw, 2.75rem)",
+                            lineHeight: "clamp(1.1, 1.15, 1.2)",
+                            textShadow: darkmode
+                              ? "0 3px 15px rgba(0, 0, 0, 0.5), 0 6px 30px rgba(0, 0, 0, 0.3)"
+                              : "0 3px 15px rgba(0, 0, 0, 0.4), 0 6px 30px rgba(0, 0, 0, 0.2)",
+                          }}
                         >
-                          <span className="block">
+                          <span className="block mb-1">
                             {slide.title.split(" ").slice(0, 2).join(" ")}
                           </span>
                           <span
-                            className={`block bg-gradient-to-r from-${
-                              slide.accentColor
-                            } to-${slide.accentColor.replace(
-                              "500",
-                              "600"
-                            )} bg-clip-text text-transparent`}
+                            className="block bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent"
+                            style={{
+                              backgroundImage: `linear-gradient(135deg, 
+                                ${
+                                  slide.accentColor === "blue-500"
+                                    ? "#60A5FA, #A855F7, #EC4899"
+                                    : slide.accentColor === "emerald-500"
+                                    ? "#34D399, #06B6D4, #8B5CF6"
+                                    : slide.accentColor === "purple-500"
+                                    ? "#A855F7, #EC4899, #F59E0B"
+                                    : slide.accentColor === "teal-500"
+                                    ? "#14B8A6, #06B6D4, #8B5CF6"
+                                    : "#FB7185, #F59E0B, #EF4444"
+                                })`,
+                            }}
                           >
                             {slide.title.split(" ").slice(2).join(" ")}
                           </span>
                         </h1>
                         <h2
-                          className={`text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold ${
-                            darkmode ? "text-gray-200/90" : "text-white/90"
-                          } leading-relaxed max-w-4xl mx-auto lg:mx-0`}
+                          className={`font-semibold ${
+                            darkmode ? "text-gray-100/90" : "text-white/90"
+                          } leading-snug max-w-2xl mx-auto lg:mx-0`}
+                          style={{
+                            fontSize: "clamp(0.75rem, 2vw, 1.125rem)",
+                            textShadow: "0 2px 8px rgba(0, 0, 0, 0.3)",
+                          }}
                         >
                           {slide.subtitle}
                         </h2>
                       </motion.div>
 
-                      {/* Description - Responsive Text */}
+                      {/* Compact Description */}
                       <motion.p
                         variants={itemVariants}
-                        className={`text-base sm:text-lg md:text-xl lg:text-2xl ${
-                          darkmode ? "text-gray-300/80" : "text-white/80"
-                        } leading-relaxed max-w-3xl mx-auto lg:mx-0 font-medium`}
+                        className={`${
+                          darkmode ? "text-gray-200/85" : "text-white/85"
+                        } leading-relaxed max-w-2xl mx-auto lg:mx-0 font-medium`}
+                        style={{
+                          fontSize: "clamp(0.875rem, 1.75vw, 1rem)",
+                          lineHeight: "clamp(1.4, 1.5, 1.6)",
+                          textShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
+                        }}
                       >
                         {slide.description}
                       </motion.p>
 
-                      {/* Features List - Responsive Grid */}
-                      <motion.div variants={itemVariants} className="block">
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 max-w-2xl mx-auto lg:mx-0">
+                      {/* Compact Action Buttons */}
+                      <motion.div
+                        variants={itemVariants}
+                        className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start pt-2"
+                      >
+                        <button
+                          className={`group relative px-6 py-3 sm:px-7 sm:py-3 rounded-xl font-bold text-sm sm:text-base transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 ${
+                            darkmode
+                              ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-xl hover:shadow-blue-500/25"
+                              : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white shadow-xl hover:shadow-blue-500/30"
+                          } backdrop-blur-sm border border-white/20`}
+                        >
+                          <span className="relative z-10 flex items-center justify-center">
+                            {slide.primaryBtn}
+                            <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-300 text-sm" />
+                          </span>
+                          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        </button>
+
+                        <button
+                          className={`group relative px-6 py-3 sm:px-7 sm:py-3 rounded-xl font-bold text-sm sm:text-base transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 ${
+                            darkmode
+                              ? "bg-white/10 hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50"
+                              : "bg-white/15 hover:bg-white/25 text-white border-2 border-white/40 hover:border-white/60"
+                          } backdrop-blur-xl shadow-xl`}
+                        >
+                          <span className="relative z-10 flex items-center justify-center">
+                            <FaPlay className="mr-2 group-hover:scale-110 transition-transform duration-300 text-sm" />
+                            {slide.secondaryBtn}
+                          </span>
+                        </button>
+                      </motion.div>
+
+                      {/* Compact Features List */}
+                      <motion.div variants={itemVariants} className="pt-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-3xl mx-auto lg:mx-0">
                           {slide.features.map((feature, idx) => (
-                            <div
+                            <motion.div
                               key={idx}
-                              className={`flex items-center justify-center lg:justify-start space-x-2 sm:space-x-3 ${
+                              whileHover={{ scale: 1.03, y: -3 }}
+                              transition={{ duration: 0.3 }}
+                              className={`group relative flex items-center justify-center lg:justify-start space-x-2 sm:space-x-3 ${
                                 darkmode
-                                  ? "bg-gray-800/20 border-gray-600/20 hover:bg-gray-700/30"
-                                  : "bg-white/10 border-white/20 hover:bg-white/20"
-                              } backdrop-blur-sm rounded-full px-3 py-2 sm:px-4 sm:py-3 border transition-all duration-300`}
+                                  ? "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20"
+                                  : "bg-white/10 border border-white/20 hover:bg-white/20 hover:border-white/30"
+                              } backdrop-blur-xl rounded-xl px-3 py-3 sm:px-4 sm:py-3 transition-all duration-500 shadow-lg hover:shadow-xl cursor-default`}
                             >
-                              <span
-                                className={`text-${slide.accentColor} text-sm sm:text-base`}
+                              <div
+                                className={`p-1.5 rounded-lg bg-gradient-to-r from-${
+                                  slide.accentColor
+                                } to-${slide.accentColor.replace(
+                                  "500",
+                                  "400"
+                                )} shadow-md group-hover:scale-110 transition-transform duration-300`}
                               >
-                                {feature.icon}
-                              </span>
+                                <span className="text-white text-sm sm:text-base">
+                                  {feature.icon}
+                                </span>
+                              </div>
                               <span
                                 className={`${
-                                  darkmode
-                                    ? "text-gray-200/90"
-                                    : "text-white/90"
-                                } text-xs sm:text-sm lg:text-base font-medium`}
+                                  darkmode ? "text-white/90" : "text-white/90"
+                                } text-xs sm:text-sm font-semibold`}
                               >
                                 {feature.text}
                               </span>
-                            </div>
+                              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            </motion.div>
                           ))}
                         </div>
                       </motion.div>
                     </motion.div>
 
-                    {/* Stats Card - Responsive Positioning */}
+                    {/* Compact Beautiful Stats Card */}
                     <motion.div
                       variants={slideVariants}
                       initial="hidden"
                       animate="visible"
-                      className="lg:col-span-5 flex justify-center lg:justify-end mt-8 lg:mt-0"
+                      className="lg:col-span-4 flex justify-center lg:justify-end mt-8 lg:mt-0"
                     >
                       <div
-                        className={`${
+                        className={`group relative ${
                           darkmode
-                            ? "bg-gray-800/20 border-gray-600/20 hover:bg-gray-700/25"
-                            : "bg-white/10 border-white/20 hover:bg-white/15"
-                        } backdrop-blur-lg rounded-3xl p-6 sm:p-8 lg:p-10 border shadow-2xl max-w-sm w-full transition-all duration-300`}
+                            ? "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20"
+                            : "bg-white/10 border border-white/20 hover:bg-white/15 hover:border-white/30"
+                        } backdrop-blur-2xl rounded-2xl p-5 sm:p-6 lg:p-7 shadow-2xl hover:shadow-3xl max-w-xs w-full transition-all duration-700 transform hover:scale-105 hover:-translate-y-2`}
+                        style={{
+                          background: darkmode
+                            ? "linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02))"
+                            : "linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))",
+                        }}
                       >
-                        <div className="text-center space-y-6 sm:space-y-8">
-                          <div
-                            className={`text-4xl sm:text-5xl lg:text-6xl text-${slide.accentColor} flex justify-center`}
+                        {/* Animated Background Glow */}
+                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+                        <div className="relative z-10 text-center space-y-5 sm:space-y-6">
+                          {/* Compact Icon with Animation */}
+                          <motion.div
+                            whileHover={{ scale: 1.1, rotate: 5 }}
+                            transition={{ duration: 0.3 }}
+                            className={`text-4xl sm:text-5xl text-${slide.accentColor} flex justify-center drop-shadow-xl`}
                           >
-                            {slide.stats.icon}
-                          </div>
-                          <div>
                             <div
-                              className={`text-3xl sm:text-4xl lg:text-5xl font-black ${
-                                darkmode ? "text-gray-100" : "text-white"
-                              } mb-2 sm:mb-4`}
+                              className={`p-3 rounded-xl bg-gradient-to-r from-${
+                                slide.accentColor
+                              }/20 to-${slide.accentColor.replace(
+                                "500",
+                                "400"
+                              )}/20 backdrop-blur-sm`}
+                            >
+                              {slide.stats.icon}
+                            </div>
+                          </motion.div>
+
+                          {/* Compact Stats Display */}
+                          <div className="space-y-2">
+                            <div
+                              className={`text-3xl sm:text-4xl font-black ${
+                                darkmode ? "text-white" : "text-white"
+                              }`}
+                              style={{
+                                textShadow: "0 3px 15px rgba(0, 0, 0, 0.3)",
+                              }}
                             >
                               {slide.stats.value}
                             </div>
                             <div
                               className={`${
-                                darkmode ? "text-gray-300/80" : "text-white/80"
-                              } font-semibold text-base sm:text-lg lg:text-xl`}
+                                darkmode ? "text-gray-200/90" : "text-white/90"
+                              } font-bold text-sm sm:text-base tracking-wide`}
                             >
                               {slide.stats.label}
                             </div>
                           </div>
-                          <div className="space-y-3 sm:space-y-4">
+
+                          {/* Compact Feature List */}
+                          <div className="space-y-3">
                             {slide.features.map((feature, idx) => (
-                              <div
+                              <motion.div
                                 key={idx}
-                                className={`flex items-center space-x-3 sm:space-x-4 ${
-                                  darkmode
-                                    ? "text-gray-200/90"
-                                    : "text-white/90"
-                                } justify-center`}
+                                whileHover={{ x: 3 }}
+                                transition={{ duration: 0.2 }}
+                                className={`flex items-center space-x-3 ${
+                                  darkmode ? "text-white/90" : "text-white/90"
+                                } justify-center group/item`}
                               >
-                                <span
-                                  className={`text-${slide.accentColor} text-base sm:text-lg`}
+                                <div
+                                  className={`p-1.5 rounded-lg bg-gradient-to-r from-${
+                                    slide.accentColor
+                                  }/30 to-${slide.accentColor.replace(
+                                    "500",
+                                    "400"
+                                  )}/30 backdrop-blur-sm group-hover/item:scale-110 transition-transform duration-300`}
                                 >
-                                  {feature.icon}
-                                </span>
+                                  <span
+                                    className={`text-${slide.accentColor} text-sm`}
+                                  >
+                                    {feature.icon}
+                                  </span>
+                                </div>
                                 <span
-                                  className={`font-medium text-sm sm:text-base lg:text-lg ${
-                                    darkmode ? "text-gray-200" : "text-white"
+                                  className={`font-semibold text-xs sm:text-sm ${
+                                    darkmode ? "text-white" : "text-white"
                                   }`}
                                 >
                                   {feature.text}
                                 </span>
-                              </div>
+                              </motion.div>
                             ))}
                           </div>
                         </div>
@@ -698,6 +831,30 @@ const Banner = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Enhanced Scroll Indicator */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 2, duration: 1 }}
+                className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-30"
+              >
+                <div
+                  className={`flex flex-col items-center space-y-2 ${
+                    darkmode ? "text-white/60" : "text-white/70"
+                  }`}
+                >
+                  <span className="text-sm font-medium tracking-wider">
+                    SCROLL
+                  </span>
+                  <motion.div
+                    animate={{ y: [0, 8, 0] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <FaChevronDown className="text-xl" />
+                  </motion.div>
+                </div>
+              </motion.div>
             </div>
           </SwiperSlide>
         ))}
