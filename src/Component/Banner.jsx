@@ -20,6 +20,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/effect-fade";
+import { Link } from "react-router";
 
 // Enhanced custom pagination styles with modern design
 const customPaginationStyles = `
@@ -177,31 +178,16 @@ const customPaginationStyles = `
     z-index: 20 !important;
   }
 
-  @media (max-width: 768px) {
-    .custom-pagination-bullet {
-      width: 40px !important;
-      height: 40px !important;
-      margin: 0 3px !important;
-    }
-    
-    .bullet-number {
-      font-size: 11px !important;
-    }
-    
-    .custom-pagination-bullet.swiper-pagination-bullet-active .bullet-number {
-      font-size: 13px !important;
-    }
-
+  @media (max-width: 1024px) {
     .swiper-pagination {
-      bottom: 25px !important;
+      bottom: 30px !important;
       gap: 6px !important;
     }
   }
 
-  @media (max-width: 480px) {
-    .custom-pagination-bullet {
-      width: 35px !important;
-      height: 35px !important;
+  @media (max-width: 768px) {
+    .swiper-pagination {
+      display: none !important;
     }
   }
 `;
@@ -237,8 +223,6 @@ const Banner = () => {
       subtitle: "Premier Sports Management",
       description:
         "World-class facilities with cutting-edge technology for your athletic journey.",
-      primaryBtn: "Book Now",
-      secondaryBtn: "Demo",
       stats: { icon: <FaUsers />, value: "500+", label: "Members" },
       features: [
         { icon: <FaClock />, text: "24/7 Booking" },
@@ -259,8 +243,7 @@ const Banner = () => {
       subtitle: "Premium Infrastructure",
       description:
         "Train with professional-grade equipment and cutting-edge technology.",
-      primaryBtn: "Explore",
-      secondaryBtn: "Tour",
+
       stats: { icon: <FaTrophy />, value: "50+", label: "Championships" },
       features: [
         { icon: <FaStar />, text: "Olympic Grade" },
@@ -281,8 +264,6 @@ const Banner = () => {
       subtitle: "Personalized Programs",
       description:
         "Certified coaches with custom training and performance analytics.",
-      primaryBtn: "Get Coach",
-      secondaryBtn: "Plans",
       stats: { icon: <FaStar />, value: "4.9", label: "Rating" },
       features: [
         { icon: <FaCheckCircle />, text: "Certified Staff" },
@@ -302,8 +283,6 @@ const Banner = () => {
       subtitle: "Connect & Compete",
       description:
         "Join tournaments, meet players, and build lasting sports connections.",
-      primaryBtn: "Join Now",
-      secondaryBtn: "Events",
       stats: { icon: <FaUsers />, value: "1K+", label: "Community" },
       features: [
         { icon: <FaUsers />, text: "Tournaments" },
@@ -312,28 +291,6 @@ const Banner = () => {
       ],
       gradient: "from-purple-900/90 via-pink-900/85 to-red-900/90",
       accentColor: "purple-500",
-    },
-    {
-      id: 5,
-      image:
-        "https://i.ibb.co.com/fVb2xcPQ/pexels-coco-championship-191448.jpg",
-      fallbackImage:
-        "https://i.ibb.co.com/fVb2xcPQ/pexels-coco-championship-191448.jpg",
-      category: "WELLNESS",
-      title: "Health & Fitness",
-      subtitle: "Complete Wellness",
-      description:
-        "Comprehensive fitness programs with nutrition and wellness support.",
-      primaryBtn: "Start Today",
-      secondaryBtn: "Programs",
-      stats: { icon: <FaShieldAlt />, value: "24/7", label: "Support" },
-      features: [
-        { icon: <FaCheckCircle />, text: "Fitness Plans" },
-        { icon: <FaUsers />, text: "Nutrition" },
-        { icon: <FaTrophy />, text: "Wellness" },
-      ],
-      gradient: "from-teal-900/90 via-green-900/85 to-emerald-900/90",
-      accentColor: "teal-500",
     },
   ];
 
@@ -535,6 +492,12 @@ const Banner = () => {
                   }
                   alt={slide.title}
                   className="w-full h-full object-cover object-center transition-transform duration-[10000ms] ease-out hover:scale-105"
+                  style={{
+                    width: "100%",
+                    height: "100vh",
+                    objectFit: "cover",
+                    objectPosition: "center",
+                  }}
                   onLoadStart={() => handleImageLoadStart(slide.id)}
                   onLoad={() => handleImageLoad(slide.id)}
                   onError={() => handleImageError(slide.id)}
@@ -597,7 +560,7 @@ const Banner = () => {
                             darkmode ? "text-white" : "text-white"
                           } leading-tight tracking-tight`}
                           style={{
-                            fontSize: "clamp(1.25rem, 3.5vw, 2.75rem)",
+                            fontSize: "clamp(4.25rem, 3.5vw, 2.75rem)",
                             lineHeight: "clamp(1.1, 1.15, 1.2)",
                             textShadow: darkmode
                               ? "0 3px 15px rgba(0, 0, 0, 0.5), 0 6px 30px rgba(0, 0, 0, 0.3)"
@@ -654,40 +617,6 @@ const Banner = () => {
                       >
                         {slide.description}
                       </motion.p>
-
-                      {/* Compact Action Buttons */}
-                      <motion.div
-                        variants={itemVariants}
-                        className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start pt-2"
-                      >
-                        <button
-                          className={`group relative px-6 py-3 sm:px-7 sm:py-3 rounded-xl font-bold text-sm sm:text-base transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 ${
-                            darkmode
-                              ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-xl hover:shadow-blue-500/25"
-                              : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white shadow-xl hover:shadow-blue-500/30"
-                          } backdrop-blur-sm border border-white/20`}
-                        >
-                          <span className="relative z-10 flex items-center justify-center">
-                            {slide.primaryBtn}
-                            <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-300 text-sm" />
-                          </span>
-                          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                        </button>
-
-                        <button
-                          className={`group relative px-6 py-3 sm:px-7 sm:py-3 rounded-xl font-bold text-sm sm:text-base transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 ${
-                            darkmode
-                              ? "bg-white/10 hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50"
-                              : "bg-white/15 hover:bg-white/25 text-white border-2 border-white/40 hover:border-white/60"
-                          } backdrop-blur-xl shadow-xl`}
-                        >
-                          <span className="relative z-10 flex items-center justify-center">
-                            <FaPlay className="mr-2 group-hover:scale-110 transition-transform duration-300 text-sm" />
-                            {slide.secondaryBtn}
-                          </span>
-                        </button>
-                      </motion.div>
-
                       {/* Compact Features List */}
                       <motion.div variants={itemVariants} className="pt-3">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-3xl mx-auto lg:mx-0">
@@ -733,7 +662,7 @@ const Banner = () => {
                       variants={slideVariants}
                       initial="hidden"
                       animate="visible"
-                      className="lg:col-span-4 flex justify-center lg:justify-end mt-8 lg:mt-0"
+                      className="lg:col-span-4 flex justify-center lg:justify-end mt-2 lg:mt-0"
                     >
                       <div
                         className={`group relative ${
@@ -791,13 +720,13 @@ const Banner = () => {
                           </div>
 
                           {/* Compact Feature List */}
-                          <div className="space-y-3">
+                          <div className="space-y-2">
                             {slide.features.map((feature, idx) => (
                               <motion.div
                                 key={idx}
                                 whileHover={{ x: 3 }}
                                 transition={{ duration: 0.2 }}
-                                className={`flex items-center space-x-3 ${
+                                className={`flex items-center justify-center space-x-3 ${
                                   darkmode ? "text-white/90" : "text-white/90"
                                 } justify-center group/item`}
                               >
@@ -831,30 +760,6 @@ const Banner = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Enhanced Scroll Indicator */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 2, duration: 1 }}
-                className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-30"
-              >
-                <div
-                  className={`flex flex-col items-center space-y-2 ${
-                    darkmode ? "text-white/60" : "text-white/70"
-                  }`}
-                >
-                  <span className="text-sm font-medium tracking-wider">
-                    SCROLL
-                  </span>
-                  <motion.div
-                    animate={{ y: [0, 8, 0] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    <FaChevronDown className="text-xl" />
-                  </motion.div>
-                </div>
-              </motion.div>
             </div>
           </SwiperSlide>
         ))}
