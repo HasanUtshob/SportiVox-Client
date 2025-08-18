@@ -16,6 +16,7 @@ import {
   FaEnvelope,
   FaMoon,
   FaSun,
+  FaChalkboardTeacher,
 } from "react-icons/fa";
 import Loading from "../Component/Loading";
 import { Themecontext } from "../Context/ThemeContext";
@@ -45,6 +46,7 @@ const Navber = () => {
   const navItems = [
     { path: "/", label: "Home", icon: <FaHome /> },
     { path: "/Courts", label: "Courts", icon: <FaThLarge /> },
+    { path: "/Coaches", label: "Coaches", icon: <FaChalkboardTeacher /> },
     { path: "/Contact", label: "Contact", icon: <FaEnvelope /> },
   ];
 

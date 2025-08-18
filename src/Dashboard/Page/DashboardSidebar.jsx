@@ -22,6 +22,7 @@ import {
   FaTags,
   FaCrown,
   FaUser,
+  FaChalkboardTeacher,
 } from "react-icons/fa";
 
 import Swal from "sweetalert2";
@@ -354,6 +355,11 @@ const DashboardSidebar = ({ sidebarOpen, toggleSidebar }) => {
                     icon={<FaRegBuilding />}
                     label="Manage Courts"
                     to="/Manage_Courts"
+                  />
+                  <MenuItem
+                    icon={<FaChalkboardTeacher />}
+                    label="Manage Coaches"
+                    to="/Manage_Coaches"
                   />
                   <MenuItem
                     icon={<FaRegCalendarCheck />}

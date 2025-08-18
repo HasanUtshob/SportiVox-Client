@@ -44,11 +44,29 @@ const ConfirmedBookings = () => {
   const fetchConfirmedBookings = async () => {
     setLoading(true);
     try {
-      const res = await axiosSecure.get(
-        `/bookings?paymentStatus=paid&email=${user?.email}`
-      );
-      setConfirmedBookings(res.data);
-      setFilteredBookings(res.data);
+      // Fetch both court and coach bookings that are paid/confirmed
+      const [courtBookingsRes, coachBookingsRes] = await Promise.all([
+        axiosSecure.get(`/bookings?paymentStatus=paid&email=${user?.email}`),
+        axiosSecure.get(
+          `/coach-bookings?paymentStatus=paid&email=${user?.email}`
+        ),
+      ]);
+
+      // Add booking type identifier to distinguish between court and coach bookings
+      const courtBookings = courtBookingsRes.data.map((booking) => ({
+        ...booking,
+        bookingType: "court",
+      }));
+
+      const coachBookings = coachBookingsRes.data.map((booking) => ({
+        ...booking,
+        bookingType: "coach",
+      }));
+
+      // Combine both types of bookings
+      const allBookings = [...courtBookings, ...coachBookings];
+      setConfirmedBookings(allBookings);
+      setFilteredBookings(allBookings);
     } catch (err) {
       console.error("Error fetching confirmed bookings:", err);
       Swal.fire({
@@ -77,15 +95,34 @@ const ConfirmedBookings = () => {
   // Filter bookings based on search
   useEffect(() => {
     if (searchTerm) {
-      const filtered = confirmedBookings.filter(
-        (booking) =>
-          booking.courtType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          booking.date.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          booking.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          booking.slots?.some((slot) =>
-            slot.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-      );
+      const filtered = confirmedBookings.filter((booking) => {
+        const searchLower = searchTerm.toLowerCase();
+
+        // For court bookings
+        if (booking.bookingType === "court") {
+          return (
+            booking.courtType?.toLowerCase().includes(searchLower) ||
+            booking.date?.toLowerCase().includes(searchLower) ||
+            booking.userName?.toLowerCase().includes(searchLower) ||
+            booking.slots?.some((slot) =>
+              slot.toLowerCase().includes(searchLower)
+            )
+          );
+        }
+
+        // For coach bookings
+        if (booking.bookingType === "coach") {
+          return (
+            booking.coachDetails?.name?.toLowerCase().includes(searchLower) ||
+            booking.date?.toLowerCase().includes(searchLower) ||
+            booking.userName?.toLowerCase().includes(searchLower) ||
+            booking.timeSlot?.toLowerCase().includes(searchLower) ||
+            booking.sessionType?.toLowerCase().includes(searchLower)
+          );
+        }
+
+        return false;
+      });
       setFilteredBookings(filtered);
     } else {
       setFilteredBookings(confirmedBookings);
@@ -164,17 +201,25 @@ const ConfirmedBookings = () => {
   };
 
   const calculateTotalAmount = () => {
-    return confirmedBookings.reduce(
-      (total, booking) => total + booking.slots?.length * booking.price,
-      0
-    );
+    return confirmedBookings.reduce((total, booking) => {
+      if (booking.bookingType === "court") {
+        return total + (booking.slots?.length || 0) * (booking.price || 0);
+      } else if (booking.bookingType === "coach") {
+        return total + (booking.totalPrice || 0);
+      }
+      return total;
+    }, 0);
   };
 
   const calculateTotalSessions = () => {
-    return confirmedBookings.reduce(
-      (total, booking) => total + booking.slots?.length,
-      0
-    );
+    return confirmedBookings.reduce((total, booking) => {
+      if (booking.bookingType === "court") {
+        return total + (booking.slots?.length || 0);
+      } else if (booking.bookingType === "coach") {
+        return total + 1; // Coach bookings are single sessions
+      }
+      return total;
+    }, 0);
   };
 
   const getAverageSessionPrice = () => {

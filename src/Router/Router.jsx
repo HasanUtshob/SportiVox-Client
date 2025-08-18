@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router";
 import MainLayout from "../LayOut/MainLayout";
 import Home from "../page/Home";
 import Courts from "../page/Courts";
+import Coaches from "../page/Coaches";
 import Demo from "../page/Demo";
 import AuthLayOut from "../LayOut/AuthLayOut";
 import SignIn from "../page/SignIn";
@@ -18,6 +19,7 @@ import Reviews from "../page/Reviews";
 import DashboardLayout from "../LayOut/DashboardLayout";
 import Dashboard from "../page/Dashboard";
 import ManageCourts from "../Dashboard/Page/ManageCourts";
+import ManageCoaches from "../Dashboard/Page/ManageCoaches";
 import PendingBookings from "../Dashboard/Page/PendingBookings";
 import ManageBookingsApproval from "../Dashboard/Page/ManageBookingsApproval ";
 import ApprovedBookings from "../Dashboard/Page/ApprovedBookings";
@@ -47,6 +49,10 @@ export const router = createBrowserRouter([
       {
         path: "/Courts",
         Component: Courts,
+      },
+      {
+        path: "/Coaches",
+        Component: Coaches,
       },
       {
         path: "/demo",
@@ -135,6 +141,14 @@ export const router = createBrowserRouter([
         element: (
           <AdminRoute>
             <ManageCourts />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/Manage_Coaches",
+        element: (
+          <AdminRoute>
+            <ManageCoaches />
           </AdminRoute>
         ),
       },

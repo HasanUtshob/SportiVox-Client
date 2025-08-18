@@ -40,7 +40,11 @@ const CheckoutForm = ({ booking, onClose, onPaymentSuccess }) => {
   const [showCouponSuggestions, setShowCouponSuggestions] = useState(false);
   const axiosSecure = useAxios();
 
-  const totalPrice = booking.slots.length * booking.price;
+  // Calculate total price based on booking type
+  const totalPrice =
+    booking.bookingType === "coach"
+      ? booking.totalPrice || 0
+      : (booking.slots?.length || 0) * (booking.price || 0);
   const finalPrice = Math.max(0, totalPrice - discount);
 
   useEffect(() => {
@@ -158,7 +162,14 @@ const CheckoutForm = ({ booking, onClose, onPaymentSuccess }) => {
         };
 
         await axiosSecure.post("/payments", paymentInfo);
-        await axiosSecure.patch(`/bookings/payment/${booking._id}`, {
+
+        // Update payment status based on booking type
+        const paymentEndpoint =
+          booking.bookingType === "coach"
+            ? `/coach-bookings/payment/${booking._id}`
+            : `/bookings/payment/${booking._id}`;
+
+        await axiosSecure.patch(paymentEndpoint, {
           paymentStatus: "paid",
         });
 
@@ -645,27 +656,42 @@ const CheckoutForm = ({ booking, onClose, onPaymentSuccess }) => {
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 flex items-center space-x-2">
                         <FaMapMarkerAlt className="text-sm" />
-                        <span>Court:</span>
+                        <span>
+                          {booking.bookingType === "coach"
+                            ? "Coach:"
+                            : "Court:"}
+                        </span>
                       </span>
                       <span className="font-medium text-gray-800">
-                        {booking.courtType}
+                        {booking.bookingType === "coach"
+                          ? booking.coachDetails?.name || "Coach Session"
+                          : booking.courtType}
                       </span>
                     </div>
 
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 flex items-center space-x-2">
                         <FaClock className="text-sm" />
-                        <span>Time Slots:</span>
+                        <span>
+                          Time{" "}
+                          {booking.bookingType === "coach" ? "Slot:" : "Slots:"}
+                        </span>
                       </span>
                       <div className="flex flex-wrap gap-1">
-                        {booking.slots.map((slot, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-medium"
-                          >
-                            {slot}
+                        {booking.bookingType === "coach" ? (
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-medium">
+                            {booking.timeSlot || "N/A"}
                           </span>
-                        ))}
+                        ) : (
+                          booking.slots?.map((slot, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-medium"
+                            >
+                              {slot}
+                            </span>
+                          ))
+                        )}
                       </div>
                     </div>
 

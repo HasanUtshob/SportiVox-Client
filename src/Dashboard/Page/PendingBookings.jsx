@@ -28,11 +28,26 @@ const PendingBookings = () => {
   const fetchPendingBookings = async () => {
     setLoading(true);
     try {
-      const res = await axiosSecure.get(
-        `/bookings?status=pending&email=${user?.email}`
-      );
-      setPendingBookings(res.data);
-      setFilteredBookings(res.data);
+      // Fetch both court bookings and coach bookings
+      const [courtBookingsRes, coachBookingsRes] = await Promise.all([
+        axiosSecure.get(`/bookings?status=pending&email=${user?.email}`),
+        axiosSecure.get(`/coach-bookings?status=pending&email=${user?.email}`),
+      ]);
+
+      // Combine both types of bookings with a type identifier
+      const courtBookings = courtBookingsRes.data.map((booking) => ({
+        ...booking,
+        bookingType: "court",
+      }));
+
+      const coachBookings = coachBookingsRes.data.map((booking) => ({
+        ...booking,
+        bookingType: "coach",
+      }));
+
+      const allBookings = [...courtBookings, ...coachBookings];
+      setPendingBookings(allBookings);
+      setFilteredBookings(allBookings);
     } catch (err) {
       console.error("Error fetching pending bookings:", err);
       Swal.fire({
@@ -61,21 +76,34 @@ const PendingBookings = () => {
   // Filter bookings based on search
   useEffect(() => {
     if (searchTerm) {
-      const filtered = pendingBookings.filter(
-        (booking) =>
-          booking.courtType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          booking.date.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          booking.slots?.some((slot) =>
-            slot.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-      );
+      const filtered = pendingBookings.filter((booking) => {
+        const searchLower = searchTerm.toLowerCase();
+
+        if (booking.bookingType === "court") {
+          return (
+            booking.courtType?.toLowerCase().includes(searchLower) ||
+            booking.date?.toLowerCase().includes(searchLower) ||
+            booking.slots?.some((slot) =>
+              slot.toLowerCase().includes(searchLower)
+            )
+          );
+        } else if (booking.bookingType === "coach") {
+          return (
+            booking.coachName?.toLowerCase().includes(searchLower) ||
+            booking.specialization?.toLowerCase().includes(searchLower) ||
+            booking.date?.toLowerCase().includes(searchLower) ||
+            booking.timeSlot?.toLowerCase().includes(searchLower)
+          );
+        }
+        return false;
+      });
       setFilteredBookings(filtered);
     } else {
       setFilteredBookings(pendingBookings);
     }
   }, [searchTerm, pendingBookings]);
 
-  const handleCancelBooking = async (id) => {
+  const handleCancelBooking = async (id, bookingType) => {
     const result = await Swal.fire({
       title: "Cancel Booking?",
       text: "This action cannot be undone. Your booking will be permanently cancelled.",
@@ -97,7 +125,10 @@ const PendingBookings = () => {
     if (result.isConfirmed) {
       try {
         setLoading(true);
-        const res = await axiosSecure.delete(`/bookings/${id}`);
+        const endpoint =
+          bookingType === "coach" ? `/coach-bookings/${id}` : `/bookings/${id}`;
+        const res = await axiosSecure.delete(endpoint);
+
         if (res.data.deletedCount) {
           await Swal.fire({
             title: "Cancelled!",
@@ -147,17 +178,25 @@ const PendingBookings = () => {
   };
 
   const calculateTotalAmount = () => {
-    return pendingBookings.reduce(
-      (total, booking) => total + booking.slots?.length * booking.price,
-      0
-    );
+    return pendingBookings.reduce((total, booking) => {
+      if (booking.bookingType === "court") {
+        return total + (booking.slots?.length || 0) * (booking.price || 0);
+      } else if (booking.bookingType === "coach") {
+        return total + (booking.totalPrice || 0);
+      }
+      return total;
+    }, 0);
   };
 
   const calculateTotalSessions = () => {
-    return pendingBookings.reduce(
-      (total, booking) => total + booking.slots?.length,
-      0
-    );
+    return pendingBookings.reduce((total, booking) => {
+      if (booking.bookingType === "court") {
+        return total + (booking.slots?.length || 0);
+      } else if (booking.bookingType === "coach") {
+        return total + 1; // Each coach booking is one session
+      }
+      return total;
+    }, 0);
   };
 
   if (loading) {
@@ -485,8 +524,15 @@ const PendingBookings = () => {
                                     darkmode ? "text-gray-200" : "text-gray-800"
                                   }`}
                                 >
-                                  {booking.courtType}
+                                  {booking.bookingType === "court"
+                                    ? booking.courtType
+                                    : booking.coachName}
                                 </span>
+                                {booking.bookingType === "coach" && (
+                                  <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-lg text-xs font-medium">
+                                    Coach
+                                  </span>
+                                )}
                               </div>
                             </td>
                             <td className="px-6 py-4">
@@ -503,18 +549,30 @@ const PendingBookings = () => {
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex flex-wrap gap-1">
-                                {booking.slots?.map((slot, idx) => (
+                                {booking.bookingType === "court" ? (
+                                  booking.slots?.map((slot, idx) => (
+                                    <span
+                                      key={idx}
+                                      className={`px-2 py-1 rounded-lg text-xs font-medium ${
+                                        darkmode
+                                          ? "bg-blue-900/50 text-blue-300"
+                                          : "bg-blue-100 text-blue-800"
+                                      }`}
+                                    >
+                                      {slot}
+                                    </span>
+                                  ))
+                                ) : (
                                   <span
-                                    key={idx}
                                     className={`px-2 py-1 rounded-lg text-xs font-medium ${
                                       darkmode
-                                        ? "bg-blue-900/50 text-blue-300"
-                                        : "bg-blue-100 text-blue-800"
+                                        ? "bg-green-900/50 text-green-300"
+                                        : "bg-green-100 text-green-800"
                                     }`}
                                   >
-                                    {slot}
+                                    {booking.timeSlot}
                                   </span>
-                                ))}
+                                )}
                               </div>
                             </td>
                             <td className="px-6 py-4">
@@ -525,7 +583,14 @@ const PendingBookings = () => {
                                     : "bg-cyan-100 text-cyan-800"
                                 }`}
                               >
-                                {booking.slots?.length} sessions
+                                {booking.bookingType === "court"
+                                  ? booking.slots?.length
+                                  : 1}{" "}
+                                session
+                                {booking.bookingType === "court" &&
+                                booking.slots?.length > 1
+                                  ? "s"
+                                  : ""}
                               </span>
                             </td>
                             <td className="px-6 py-4">
@@ -536,7 +601,10 @@ const PendingBookings = () => {
                                     darkmode ? "text-gray-200" : "text-gray-800"
                                   }`}
                                 >
-                                  ৳{booking.slots?.length * booking.price}
+                                  ৳
+                                  {booking.bookingType === "court"
+                                    ? booking.slots?.length * booking.price
+                                    : booking.totalPrice}
                                 </span>
                               </div>
                             </td>
@@ -558,7 +626,12 @@ const PendingBookings = () => {
                               <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                onClick={() => handleCancelBooking(booking._id)}
+                                onClick={() =>
+                                  handleCancelBooking(
+                                    booking._id,
+                                    booking.bookingType
+                                  )
+                                }
                                 className="px-4 py-2 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-1"
                               >
                                 <FaTimes />
@@ -597,7 +670,16 @@ const PendingBookings = () => {
                             }`}
                           >
                             <MdSportsBasketball className="text-blue-500" />
-                            <span>{booking.courtType}</span>
+                            <span>
+                              {booking.bookingType === "court"
+                                ? booking.courtType
+                                : booking.coachName}
+                            </span>
+                            {booking.bookingType === "coach" && (
+                              <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-lg text-xs font-medium">
+                                Coach
+                              </span>
+                            )}
                           </h3>
                           <div
                             className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 w-fit mt-2 ${
@@ -618,7 +700,10 @@ const PendingBookings = () => {
                           >
                             <MdAttachMoney className="text-green-500" />
                             <span>
-                              ৳{booking.slots?.length * booking.price}
+                              ৳
+                              {booking.bookingType === "court"
+                                ? booking.slots?.length * booking.price
+                                : booking.totalPrice}
                             </span>
                           </div>
                           <span
@@ -626,7 +711,14 @@ const PendingBookings = () => {
                               darkmode ? "text-gray-400" : "text-gray-500"
                             }`}
                           >
-                            {booking.slots?.length} sessions
+                            {booking.bookingType === "court"
+                              ? booking.slots?.length
+                              : 1}{" "}
+                            session
+                            {booking.bookingType === "court" &&
+                            booking.slots?.length > 1
+                              ? "s"
+                              : ""}
                           </span>
                         </div>
                       </div>
@@ -650,18 +742,30 @@ const PendingBookings = () => {
                             <span>Time Slots:</span>
                           </div>
                           <div className="flex flex-wrap gap-2 ml-6">
-                            {booking.slots?.map((slot, idx) => (
+                            {booking.bookingType === "court" ? (
+                              booking.slots?.map((slot, idx) => (
+                                <span
+                                  key={idx}
+                                  className={`px-3 py-1 rounded-lg text-xs font-medium ${
+                                    darkmode
+                                      ? "bg-blue-900/50 text-blue-300"
+                                      : "bg-blue-100 text-blue-800"
+                                  }`}
+                                >
+                                  {slot}
+                                </span>
+                              ))
+                            ) : (
                               <span
-                                key={idx}
                                 className={`px-3 py-1 rounded-lg text-xs font-medium ${
                                   darkmode
-                                    ? "bg-blue-900/50 text-blue-300"
-                                    : "bg-blue-100 text-blue-800"
+                                    ? "bg-green-900/50 text-green-300"
+                                    : "bg-green-100 text-green-800"
                                 }`}
                               >
-                                {slot}
+                                {booking.timeSlot}
                               </span>
-                            ))}
+                            )}
                           </div>
                         </div>
                       </div>
@@ -669,7 +773,9 @@ const PendingBookings = () => {
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => handleCancelBooking(booking._id)}
+                        onClick={() =>
+                          handleCancelBooking(booking._id, booking.bookingType)
+                        }
                         className="w-full py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2"
                       >
                         <FaTimes />

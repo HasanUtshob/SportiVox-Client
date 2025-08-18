@@ -45,11 +45,29 @@ const ApprovedBookings = () => {
   const fetchApprovedBookings = async () => {
     setLoading(true);
     try {
-      const res = await axiosSecure.get(
-        `/bookings?status=approved&email=${user?.email}`
-      );
-      setApprovedBookings(res.data);
-      setFilteredBookings(res.data);
+      // Fetch both court and coach bookings
+      const [courtBookingsRes, coachBookingsRes] = await Promise.all([
+        axiosSecure.get(`/bookings?status=approved&email=${user?.email}`),
+        axiosSecure.get(
+          `/coach-bookings?status=confirmed&email=${user?.email}`
+        ),
+      ]);
+
+      // Add booking type identifier to distinguish between court and coach bookings
+      const courtBookings = courtBookingsRes.data.map((booking) => ({
+        ...booking,
+        bookingType: "court",
+      }));
+
+      const coachBookings = coachBookingsRes.data.map((booking) => ({
+        ...booking,
+        bookingType: "coach",
+      }));
+
+      // Combine both types of bookings
+      const allBookings = [...courtBookings, ...coachBookings];
+      setApprovedBookings(allBookings);
+      setFilteredBookings(allBookings);
     } catch (err) {
       console.error("Error fetching approved bookings:", err);
       Swal.fire({
@@ -78,22 +96,36 @@ const ApprovedBookings = () => {
   // Filter bookings based on search
   useEffect(() => {
     if (searchTerm) {
-      const filtered = approvedBookings.filter(
-        (booking) =>
-          booking.courtType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          booking.date.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          booking.slots?.some((slot) =>
-            slot.toLowerCase().includes(searchTerm.toLowerCase())
-          ) ||
-          booking.paymentStatus.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const filtered = approvedBookings.filter((booking) => {
+        const searchLower = searchTerm.toLowerCase();
+
+        if (booking.bookingType === "court") {
+          return (
+            booking.courtType?.toLowerCase().includes(searchLower) ||
+            booking.date?.toLowerCase().includes(searchLower) ||
+            booking.slots?.some((slot) =>
+              slot.toLowerCase().includes(searchLower)
+            ) ||
+            booking.paymentStatus?.toLowerCase().includes(searchLower)
+          );
+        } else if (booking.bookingType === "coach") {
+          return (
+            booking.coachDetails?.name?.toLowerCase().includes(searchLower) ||
+            booking.date?.toLowerCase().includes(searchLower) ||
+            booking.timeSlot?.toLowerCase().includes(searchLower) ||
+            booking.sessionType?.toLowerCase().includes(searchLower) ||
+            booking.paymentStatus?.toLowerCase().includes(searchLower)
+          );
+        }
+        return false;
+      });
       setFilteredBookings(filtered);
     } else {
       setFilteredBookings(approvedBookings);
     }
   }, [searchTerm, approvedBookings]);
 
-  const handleCancel = async (id) => {
+  const handleCancel = async (id, bookingType) => {
     const result = await Swal.fire({
       title: "Cancel Booking?",
       text: "This action cannot be undone. Your approved booking will be permanently cancelled.",
@@ -115,7 +147,12 @@ const ApprovedBookings = () => {
     if (result.isConfirmed) {
       try {
         setActionLoading(id);
-        const res = await axiosSecure.delete(`/bookings/${id}`);
+
+        // Use different endpoints based on booking type
+        const endpoint =
+          bookingType === "court" ? `/bookings/${id}` : `/coach-bookings/${id}`;
+        const res = await axiosSecure.delete(endpoint);
+
         if (res.data.deletedCount) {
           await Swal.fire({
             title: "Cancelled!",
@@ -192,35 +229,51 @@ const ApprovedBookings = () => {
   };
 
   const calculateTotalAmount = () => {
-    return approvedBookings.reduce(
-      (total, booking) => total + booking.slots?.length * booking.price,
-      0
-    );
+    return approvedBookings.reduce((total, booking) => {
+      if (booking.bookingType === "court") {
+        return total + (booking.slots?.length || 0) * (booking.price || 0);
+      } else if (booking.bookingType === "coach") {
+        return total + (booking.totalPrice || 0);
+      }
+      return total;
+    }, 0);
   };
 
   const calculatePaidAmount = () => {
     return approvedBookings
       .filter((booking) => booking.paymentStatus === "paid")
-      .reduce(
-        (total, booking) => total + booking.slots?.length * booking.price,
-        0
-      );
+      .reduce((total, booking) => {
+        if (booking.bookingType === "court") {
+          return total + (booking.slots?.length || 0) * (booking.price || 0);
+        } else if (booking.bookingType === "coach") {
+          return total + (booking.totalPrice || 0);
+        }
+        return total;
+      }, 0);
   };
 
   const calculateUnpaidAmount = () => {
     return approvedBookings
       .filter((booking) => booking.paymentStatus !== "paid")
-      .reduce(
-        (total, booking) => total + booking.slots?.length * booking.price,
-        0
-      );
+      .reduce((total, booking) => {
+        if (booking.bookingType === "court") {
+          return total + (booking.slots?.length || 0) * (booking.price || 0);
+        } else if (booking.bookingType === "coach") {
+          return total + (booking.totalPrice || 0);
+        }
+        return total;
+      }, 0);
   };
 
   const calculateTotalSessions = () => {
-    return approvedBookings.reduce(
-      (total, booking) => total + booking.slots?.length,
-      0
-    );
+    return approvedBookings.reduce((total, booking) => {
+      if (booking.bookingType === "court") {
+        return total + (booking.slots?.length || 0);
+      } else if (booking.bookingType === "coach") {
+        return total + 1; // Coach bookings are single sessions
+      }
+      return total;
+    }, 0);
   };
 
   const getPaymentProgress = () => {
@@ -603,7 +656,10 @@ const ApprovedBookings = () => {
                                         : "text-gray-800"
                                     }`}
                                   >
-                                    {booking.courtType}
+                                    {booking.bookingType === "court"
+                                      ? booking.courtType
+                                      : booking.coachDetails?.name ||
+                                        "Coach Session"}
                                   </span>
                                 </div>
                               </td>
@@ -623,18 +679,30 @@ const ApprovedBookings = () => {
                               </td>
                               <td className="px-6 py-4">
                                 <div className="flex flex-wrap gap-1">
-                                  {booking.slots?.map((slot, idx) => (
+                                  {booking.bookingType === "court" ? (
+                                    booking.slots?.map((slot, idx) => (
+                                      <span
+                                        key={idx}
+                                        className={`px-2 py-1 rounded-lg text-xs font-medium ${
+                                          darkmode
+                                            ? "bg-green-900/50 text-green-300"
+                                            : "bg-green-100 text-green-800"
+                                        }`}
+                                      >
+                                        {slot}
+                                      </span>
+                                    ))
+                                  ) : (
                                     <span
-                                      key={idx}
                                       className={`px-2 py-1 rounded-lg text-xs font-medium ${
                                         darkmode
-                                          ? "bg-green-900/50 text-green-300"
-                                          : "bg-green-100 text-green-800"
+                                          ? "bg-blue-900/50 text-blue-300"
+                                          : "bg-blue-100 text-blue-800"
                                       }`}
                                     >
-                                      {slot}
+                                      {booking.timeSlot || "N/A"}
                                     </span>
-                                  ))}
+                                  )}
                                 </div>
                               </td>
                               <td className="px-6 py-4">
@@ -645,7 +713,9 @@ const ApprovedBookings = () => {
                                       : "bg-cyan-100 text-cyan-800"
                                   }`}
                                 >
-                                  {booking.slots?.length} sessions
+                                  {booking.bookingType === "court"
+                                    ? `${booking.slots?.length || 0} sessions`
+                                    : "1 session"}
                                 </span>
                               </td>
                               <td className="px-6 py-4">
@@ -658,7 +728,11 @@ const ApprovedBookings = () => {
                                         : "text-gray-800"
                                     }`}
                                   >
-                                    ৳{booking.slots?.length * booking.price}
+                                    ৳
+                                    {booking.bookingType === "court"
+                                      ? (booking.slots?.length || 0) *
+                                        (booking.price || 0)
+                                      : booking.totalPrice || 0}
                                   </span>
                                 </div>
                               </td>
@@ -706,7 +780,12 @@ const ApprovedBookings = () => {
                                   <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
-                                    onClick={() => handleCancel(booking._id)}
+                                    onClick={() =>
+                                      handleCancel(
+                                        booking._id,
+                                        booking.bookingType
+                                      )
+                                    }
                                     disabled={actionLoading === booking._id}
                                     className="px-4 py-2 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-1 disabled:opacity-50"
                                   >
@@ -756,7 +835,9 @@ const ApprovedBookings = () => {
                                 darkmode ? "text-gray-100" : "text-gray-800"
                               }`}
                             >
-                              {booking.courtType}
+                              {booking.bookingType === "court"
+                                ? booking.courtType
+                                : booking.coachDetails?.name || "Coach Session"}
                             </h3>
                             {booking.paymentStatus === "paid" ? (
                               <div
@@ -791,7 +872,11 @@ const ApprovedBookings = () => {
                           >
                             <MdAttachMoney className="text-green-500" />
                             <span>
-                              ৳{booking.slots?.length * booking.price}
+                              ৳
+                              {booking.bookingType === "court"
+                                ? (booking.slots?.length || 0) *
+                                  (booking.price || 0)
+                                : booking.totalPrice || 0}
                             </span>
                           </div>
                           <span
@@ -799,7 +884,9 @@ const ApprovedBookings = () => {
                               darkmode ? "text-gray-400" : "text-gray-500"
                             }`}
                           >
-                            {booking.slots?.length} sessions
+                            {booking.bookingType === "court"
+                              ? `${booking.slots?.length || 0} sessions`
+                              : "1 session"}
                           </span>
                         </div>
                       </div>
@@ -826,18 +913,30 @@ const ApprovedBookings = () => {
                             <span className="font-semibold">Time Slots:</span>
                           </div>
                           <div className="flex flex-wrap gap-3 ml-8">
-                            {booking.slots?.map((slot, idx) => (
+                            {booking.bookingType === "court" ? (
+                              booking.slots?.map((slot, idx) => (
+                                <span
+                                  key={idx}
+                                  className={`px-4 py-2 rounded-xl text-sm font-bold shadow-sm ${
+                                    darkmode
+                                      ? "bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300"
+                                      : "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800"
+                                  }`}
+                                >
+                                  {slot}
+                                </span>
+                              ))
+                            ) : (
                               <span
-                                key={idx}
                                 className={`px-4 py-2 rounded-xl text-sm font-bold shadow-sm ${
                                   darkmode
-                                    ? "bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300"
-                                    : "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800"
+                                    ? "bg-gradient-to-r from-blue-900/50 to-cyan-900/50 text-blue-300"
+                                    : "bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800"
                                 }`}
                               >
-                                {slot}
+                                {booking.timeSlot || "N/A"}
                               </span>
-                            ))}
+                            )}
                           </div>
                         </div>
                       </div>
@@ -859,7 +958,9 @@ const ApprovedBookings = () => {
                         <motion.button
                           whileHover={{ scale: 1.02, y: -2 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => handleCancel(booking._id)}
+                          onClick={() =>
+                            handleCancel(booking._id, booking.bookingType)
+                          }
                           disabled={actionLoading === booking._id}
                           className={`${
                             booking.paymentStatus !== "paid"

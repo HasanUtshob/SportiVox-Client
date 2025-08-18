@@ -32,8 +32,27 @@ const ManageBookingsApproval = () => {
     const fetchBookings = async () => {
       try {
         setLoading(true);
-        const res = await axiosSecure.get("/bookings");
-        const sorted = res.data.sort((a, b) => {
+        // Fetch both court and coach bookings
+        const [courtBookingsRes, coachBookingsRes] = await Promise.all([
+          axiosSecure.get("/bookings"),
+          axiosSecure.get("/coach-bookings"),
+        ]);
+
+        // Add booking type identifier to distinguish between court and coach bookings
+        const courtBookings = courtBookingsRes.data.map((booking) => ({
+          ...booking,
+          bookingType: "court",
+        }));
+
+        const coachBookings = coachBookingsRes.data.map((booking) => ({
+          ...booking,
+          bookingType: "coach",
+        }));
+
+        // Combine both types of bookings
+        const allBookings = [...courtBookings, ...coachBookings];
+
+        const sorted = allBookings.sort((a, b) => {
           if (a.status === "pending" && b.status !== "pending") return -1;
           if (a.status !== "pending" && b.status === "pending") return 1;
           return new Date(b.createdAt) - new Date(a.createdAt);
@@ -56,12 +75,33 @@ const ManageBookingsApproval = () => {
     let filtered = bookings;
 
     if (searchTerm) {
-      filtered = filtered.filter(
-        (booking) =>
-          booking.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          booking.courtType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          booking.userEmail.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      filtered = filtered.filter((booking) => {
+        const searchLower = searchTerm.toLowerCase();
+
+        // Common fields for both booking types
+        const commonMatch =
+          booking.userName?.toLowerCase().includes(searchLower) ||
+          booking.userEmail?.toLowerCase().includes(searchLower);
+
+        // For court bookings
+        if (booking.bookingType === "court") {
+          return (
+            commonMatch ||
+            booking.courtType?.toLowerCase().includes(searchLower)
+          );
+        }
+
+        // For coach bookings
+        if (booking.bookingType === "coach") {
+          return (
+            commonMatch ||
+            booking.coachDetails?.name?.toLowerCase().includes(searchLower) ||
+            booking.sessionType?.toLowerCase().includes(searchLower)
+          );
+        }
+
+        return commonMatch;
+      });
     }
 
     if (statusFilter !== "all") {
@@ -76,6 +116,10 @@ const ManageBookingsApproval = () => {
   };
 
   const handleApprove = async (bookingId) => {
+    // Find the booking to determine its type
+    const booking = bookings.find((b) => b._id === bookingId);
+    if (!booking) return;
+
     const result = await Swal.fire({
       title: "Approve Booking?",
       text: "This will approve the booking and promote the user to member status.",
@@ -97,8 +141,36 @@ const ManageBookingsApproval = () => {
     if (result.isConfirmed) {
       try {
         setLoading(true);
-        const res = await axiosSecure.put(`/bookings/approve/${bookingId}`);
-        if (res.data.bookingModified > 0 || res.data.userModified > 0) {
+        let res;
+
+        if (booking.bookingType === "court") {
+          // Use the existing court booking approval endpoint
+          res = await axiosSecure.put(`/bookings/approve/${bookingId}`);
+        } else {
+          // For coach bookings, use the status update endpoint to set status to 'confirmed'
+          res = await axiosSecure.patch(`/coach-bookings/${bookingId}/status`, {
+            status: "confirmed",
+          });
+
+          // Also promote user to member for coach bookings
+          try {
+            await axiosSecure.patch(`/users/role/${booking.userEmail}`, {
+              role: "member",
+            });
+          } catch (userError) {
+            console.log(
+              "User role update failed (user might already be member/admin):",
+              userError
+            );
+          }
+        }
+
+        if (
+          res.data.bookingModified > 0 ||
+          res.data.userModified > 0 ||
+          res.data.modifiedCount > 0 ||
+          res.data.matchedCount > 0
+        ) {
           await Swal.fire({
             title: "Approved!",
             text: "Booking approved and user promoted to member.",
@@ -147,6 +219,10 @@ const ManageBookingsApproval = () => {
   };
 
   const handleReject = async (id) => {
+    // Find the booking to determine its type
+    const booking = bookings.find((b) => b._id === id);
+    if (!booking) return;
+
     const result = await Swal.fire({
       title: "Reject Booking?",
       text: "This will permanently delete the booking request!",
@@ -168,7 +244,15 @@ const ManageBookingsApproval = () => {
     if (result.isConfirmed) {
       try {
         setLoading(true);
-        const res = await axiosSecure.delete(`/bookings/${id}`);
+
+        // Use different endpoints based on booking type
+        const endpoint =
+          booking.bookingType === "court"
+            ? `/bookings/${id}`
+            : `/coach-bookings/${id}`;
+
+        const res = await axiosSecure.delete(endpoint);
+
         if (res.data.deletedCount > 0) {
           Swal.fire({
             title: "Rejected!",
@@ -547,7 +631,10 @@ const ManageBookingsApproval = () => {
                                     darkmode ? "text-gray-200" : "text-gray-900"
                                   }`}
                                 >
-                                  {booking.courtType}
+                                  {booking.bookingType === "court"
+                                    ? booking.courtType
+                                    : booking.coachDetails?.name ||
+                                      "Coach Session"}
                                 </span>
                               </div>
                             </td>
@@ -589,7 +676,9 @@ const ManageBookingsApproval = () => {
                                     darkmode ? "text-gray-300" : "text-gray-700"
                                   }`}
                                 >
-                                  {booking.slots?.join(", ")}
+                                  {booking.bookingType === "court"
+                                    ? booking.slots?.join(", ")
+                                    : booking.timeSlot || "N/A"}
                                 </span>
                               </div>
                             </td>
@@ -601,7 +690,11 @@ const ManageBookingsApproval = () => {
                                     darkmode ? "text-gray-200" : "text-gray-900"
                                   }`}
                                 >
-                                  ৳{booking.slots?.length * booking.price}
+                                  ৳
+                                  {booking.bookingType === "court"
+                                    ? (booking.slots?.length || 0) *
+                                      (booking.price || 0)
+                                    : booking.totalPrice || 0}
                                 </span>
                               </div>
                             </td>
@@ -688,7 +781,11 @@ const ManageBookingsApproval = () => {
                             } flex items-center space-x-2`}
                           >
                             <MdSportsBasketball className="text-blue-500" />
-                            <span>{booking.courtType}</span>
+                            <span>
+                              {booking.bookingType === "court"
+                                ? booking.courtType
+                                : booking.coachDetails?.name || "Coach Session"}
+                            </span>
                           </h3>
                           <p
                             className={`text-sm ${
@@ -727,7 +824,11 @@ const ManageBookingsApproval = () => {
                           }`}
                         >
                           <MdSchedule className="text-green-500" />
-                          <span>{booking.slots?.join(", ")}</span>
+                          <span>
+                            {booking.bookingType === "court"
+                              ? booking.slots?.join(", ")
+                              : booking.timeSlot || "N/A"}
+                          </span>
                         </div>
                         <div
                           className={`flex items-center space-x-2 text-sm font-semibold ${
@@ -735,7 +836,13 @@ const ManageBookingsApproval = () => {
                           }`}
                         >
                           <MdAttachMoney className="text-yellow-500" />
-                          <span>৳{booking.slots?.length * booking.price}</span>
+                          <span>
+                            ৳
+                            {booking.bookingType === "court"
+                              ? (booking.slots?.length || 0) *
+                                (booking.price || 0)
+                              : booking.totalPrice || 0}
+                          </span>
                         </div>
                       </div>
 
