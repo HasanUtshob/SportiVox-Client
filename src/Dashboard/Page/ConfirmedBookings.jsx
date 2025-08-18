@@ -129,7 +129,7 @@ const ConfirmedBookings = () => {
     }
   }, [searchTerm, confirmedBookings]);
 
-  const handleCancel = async (id) => {
+  const handleCancel = async (id, bookingType) => {
     const result = await Swal.fire({
       title: "Cancel Confirmed Booking?",
       text: "This action cannot be undone. The confirmed booking will be permanently cancelled.",
@@ -151,7 +151,12 @@ const ConfirmedBookings = () => {
     if (result.isConfirmed) {
       try {
         setActionLoading(id);
-        const res = await axiosSecure.delete(`/bookings/${id}`);
+
+        // Use different endpoints based on booking type
+        const endpoint =
+          bookingType === "court" ? `/bookings/${id}` : `/coach-bookings/${id}`;
+        const res = await axiosSecure.delete(endpoint);
+
         if (res.data.deletedCount) {
           await Swal.fire({
             title: "Cancelled!",
@@ -544,7 +549,10 @@ const ConfirmedBookings = () => {
                                     darkmode ? "text-gray-100" : "text-gray-800"
                                   }`}
                                 >
-                                  {booking.courtType}
+                                  {booking.bookingType === "coach"
+                                    ? booking.coachDetails?.name ||
+                                      "Coach Session"
+                                    : booking.courtType}
                                 </h3>
                                 <p
                                   className={`text-sm flex items-center space-x-1 ${
@@ -553,7 +561,12 @@ const ConfirmedBookings = () => {
                                 >
                                   <MdLocationOn className="text-xs" />
                                   <span>
-                                    Court #{booking.courtNumber || "TBD"}
+                                    {booking.bookingType === "coach"
+                                      ? booking.sessionType ||
+                                        "Training Session"
+                                      : `Court #${
+                                          booking.courtNumber || "TBD"
+                                        }`}
                                   </span>
                                 </p>
                               </div>
@@ -600,14 +613,20 @@ const ConfirmedBookings = () => {
                               </span>
                             </div>
                             <div className="flex flex-wrap gap-1">
-                              {booking.slots?.map((slot, idx) => (
-                                <span
-                                  key={idx}
-                                  className="px-2 py-0.5 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 rounded-lg text-xs font-medium shadow-sm"
-                                >
-                                  {slot}
+                              {booking.bookingType === "coach" ? (
+                                <span className="px-2 py-0.5 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 rounded-lg text-xs font-medium shadow-sm">
+                                  {booking.timeSlot || "N/A"}
                                 </span>
-                              ))}
+                              ) : (
+                                booking.slots?.map((slot, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="px-2 py-0.5 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 rounded-lg text-xs font-medium shadow-sm"
+                                  >
+                                    {slot}
+                                  </span>
+                                ))
+                              )}
                             </div>
                           </div>
 
@@ -621,7 +640,9 @@ const ConfirmedBookings = () => {
                                     darkmode ? "text-gray-300" : "text-gray-700"
                                   }`}
                                 >
-                                  {booking.slots?.length} sessions
+                                  {booking.bookingType === "coach"
+                                    ? "1 session"
+                                    : `${booking.slots?.length} sessions`}
                                 </span>
                               </div>
                               <div className="flex items-center space-x-1">
@@ -631,14 +652,20 @@ const ConfirmedBookings = () => {
                                     darkmode ? "text-gray-100" : "text-gray-800"
                                   }`}
                                 >
-                                  ৳{booking.slots?.length * booking.price}
+                                  ৳
+                                  {booking.bookingType === "coach"
+                                    ? booking.totalPrice || 0
+                                    : (booking.slots?.length || 0) *
+                                      (booking.price || 0)}
                                 </span>
                               </div>
                             </div>
                             <motion.button
                               whileHover={{ scale: 1.02, y: -1 }}
                               whileTap={{ scale: 0.98 }}
-                              onClick={() => handleCancel(booking._id)}
+                              onClick={() =>
+                                handleCancel(booking._id, booking.bookingType)
+                              }
                               disabled={actionLoading === booking._id}
                               className="px-3 py-1 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-lg text-xs font-medium shadow-md hover:shadow-lg transition-all duration-200 flex items-center space-x-1 disabled:opacity-50"
                             >
@@ -758,7 +785,10 @@ const ConfirmedBookings = () => {
                                             : "text-gray-800"
                                         }`}
                                       >
-                                        {booking.courtType}
+                                        {booking.bookingType === "coach"
+                                          ? booking.coachDetails?.name ||
+                                            "Coach Session"
+                                          : booking.courtType}
                                       </div>
                                       <div
                                         className={`text-xs flex items-center space-x-1 ${
@@ -769,7 +799,12 @@ const ConfirmedBookings = () => {
                                       >
                                         <MdLocationOn className="text-xs flex-shrink-0" />
                                         <span className="truncate">
-                                          Court #{booking.courtNumber || "TBD"}
+                                          {booking.bookingType === "coach"
+                                            ? booking.sessionType ||
+                                              "Training Session"
+                                            : `Court #${
+                                                booking.courtNumber || "TBD"
+                                              }`}
                                         </span>
                                       </div>
                                     </div>
@@ -822,21 +857,35 @@ const ConfirmedBookings = () => {
                                       </span>
                                     </div>
                                     <div className="flex flex-wrap gap-1">
-                                      {booking.slots
-                                        ?.slice(0, 2)
-                                        .map((slot, idx) => (
-                                          <motion.span
-                                            key={idx}
-                                            whileHover={{ scale: 1.05, y: -2 }}
-                                            className="px-2 py-1 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 rounded-lg text-xs font-medium shadow-sm border border-blue-200/50 hover:shadow-md transition-all duration-200"
-                                          >
-                                            {slot}
-                                          </motion.span>
-                                        ))}
-                                      {booking.slots?.length > 2 && (
-                                        <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium">
-                                          +{booking.slots.length - 2} more
-                                        </span>
+                                      {booking.bookingType === "coach" ? (
+                                        <motion.span
+                                          whileHover={{ scale: 1.05, y: -2 }}
+                                          className="px-2 py-1 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 rounded-lg text-xs font-medium shadow-sm border border-blue-200/50 hover:shadow-md transition-all duration-200"
+                                        >
+                                          {booking.timeSlot || "N/A"}
+                                        </motion.span>
+                                      ) : (
+                                        <>
+                                          {booking.slots
+                                            ?.slice(0, 2)
+                                            .map((slot, idx) => (
+                                              <motion.span
+                                                key={idx}
+                                                whileHover={{
+                                                  scale: 1.05,
+                                                  y: -2,
+                                                }}
+                                                className="px-2 py-1 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 rounded-lg text-xs font-medium shadow-sm border border-blue-200/50 hover:shadow-md transition-all duration-200"
+                                              >
+                                                {slot}
+                                              </motion.span>
+                                            ))}
+                                          {booking.slots?.length > 2 && (
+                                            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium">
+                                              +{booking.slots.length - 2} more
+                                            </span>
+                                          )}
+                                        </>
                                       )}
                                     </div>
                                   </div>
@@ -844,7 +893,11 @@ const ConfirmedBookings = () => {
                                 <td className="px-3 py-4">
                                   <div className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 shadow-sm border border-green-200/50">
                                     <MdSchedule className="mr-1.5 flex-shrink-0" />
-                                    <span>{booking.slots?.length}</span>
+                                    <span>
+                                      {booking.bookingType === "coach"
+                                        ? "1"
+                                        : booking.slots?.length}
+                                    </span>
                                   </div>
                                 </td>
                                 <td className="px-3 py-4">
@@ -857,7 +910,11 @@ const ConfirmedBookings = () => {
                                           : "text-gray-800"
                                       }`}
                                     >
-                                      ৳{booking.slots?.length * booking.price}
+                                      ৳
+                                      {booking.bookingType === "coach"
+                                        ? booking.totalPrice || 0
+                                        : (booking.slots?.length || 0) *
+                                          (booking.price || 0)}
                                     </span>
                                   </div>
                                 </td>
@@ -874,7 +931,12 @@ const ConfirmedBookings = () => {
                                   <motion.button
                                     whileHover={{ scale: 1.02, y: -1 }}
                                     whileTap={{ scale: 0.98 }}
-                                    onClick={() => handleCancel(booking._id)}
+                                    onClick={() =>
+                                      handleCancel(
+                                        booking._id,
+                                        booking.bookingType
+                                      )
+                                    }
                                     disabled={actionLoading === booking._id}
                                     className="px-3 py-2 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-xl text-xs font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                                   >
