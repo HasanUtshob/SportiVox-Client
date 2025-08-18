@@ -16,6 +16,8 @@ import {
   FaCheckCircle,
   FaPhone,
   FaEnvelope,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
 import CoachBookingModal from "./CoachBookingModal";
 import useAuth from "../hooks/useAuth";
@@ -507,6 +509,7 @@ const Coaches = () => {
   const [detailsCoach, setDetailsCoach] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalCoaches, setTotalCoaches] = useState(0);
   const [viewMode, setViewMode] = useState("cards");
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -540,9 +543,11 @@ const Coaches = () => {
           // Update pagination info if available
           if (response.data.pagination) {
             setTotalPages(response.data.pagination.totalPages);
+            setTotalCoaches(response.data.pagination.totalCoaches);
           }
         } else {
           setCoaches([]);
+          setTotalCoaches(0);
         }
       } catch (error) {
         console.error("Error fetching coaches:", error);
@@ -907,6 +912,381 @@ const Coaches = () => {
                 </motion.div>
               ))}
             </AnimatePresence>
+          </motion.div>
+        )}
+
+        {/* Table View - Hidden on mobile */}
+        {viewMode === "table" && coaches.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`${
+              darkmode
+                ? "bg-gray-800/80 border-gray-700/30"
+                : "bg-white/80 border-white/20"
+            } backdrop-blur-sm rounded-3xl shadow-xl border overflow-hidden`}
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead
+                  className={`${
+                    darkmode
+                      ? "bg-gray-700/50 border-gray-600"
+                      : "bg-gray-50 border-gray-200"
+                  } border-b`}
+                >
+                  <tr>
+                    <th
+                      className={`px-6 py-4 text-left text-sm font-semibold ${
+                        darkmode ? "text-gray-200" : "text-gray-700"
+                      }`}
+                    >
+                      Coach
+                    </th>
+                    <th
+                      className={`px-6 py-4 text-left text-sm font-semibold ${
+                        darkmode ? "text-gray-200" : "text-gray-700"
+                      }`}
+                    >
+                      Specialization
+                    </th>
+                    <th
+                      className={`px-6 py-4 text-left text-sm font-semibold ${
+                        darkmode ? "text-gray-200" : "text-gray-700"
+                      }`}
+                    >
+                      Experience
+                    </th>
+                    <th
+                      className={`px-6 py-4 text-left text-sm font-semibold ${
+                        darkmode ? "text-gray-200" : "text-gray-700"
+                      }`}
+                    >
+                      Location
+                    </th>
+                    <th
+                      className={`px-6 py-4 text-left text-sm font-semibold ${
+                        darkmode ? "text-gray-200" : "text-gray-700"
+                      }`}
+                    >
+                      Rating
+                    </th>
+                    <th
+                      className={`px-6 py-4 text-left text-sm font-semibold ${
+                        darkmode ? "text-gray-200" : "text-gray-700"
+                      }`}
+                    >
+                      Rate/Hour
+                    </th>
+                    <th
+                      className={`px-6 py-4 text-center text-sm font-semibold ${
+                        darkmode ? "text-gray-200" : "text-gray-700"
+                      }`}
+                    >
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <AnimatePresence>
+                    {coaches.map((coach, index) => (
+                      <motion.tr
+                        key={coach._id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                        className={`${
+                          darkmode
+                            ? "border-gray-700 hover:bg-gray-700/30"
+                            : "border-gray-200 hover:bg-gray-50"
+                        } border-b transition-colors duration-200`}
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-4">
+                            <img
+                              src={coach.image}
+                              alt={coach.name}
+                              className="w-12 h-12 rounded-xl object-cover bg-gray-100 dark:bg-gray-600"
+                              loading="lazy"
+                            />
+                            <div>
+                              <h3
+                                className={`font-semibold ${
+                                  darkmode ? "text-gray-200" : "text-gray-800"
+                                }`}
+                              >
+                                {coach.name}
+                              </h3>
+                              <p
+                                className={`text-sm ${
+                                  darkmode ? "text-gray-400" : "text-gray-600"
+                                }`}
+                              >
+                                {coach.email || "coach@example.com"}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`inline-flex items-center gap-2 px-3 py-1 rounded-xl text-sm font-medium ${
+                              darkmode
+                                ? "bg-blue-900/30 text-blue-300 border border-blue-700/50"
+                                : "bg-blue-100 text-blue-800 border border-blue-200"
+                            }`}
+                          >
+                            <FaTrophy className="text-xs" />
+                            {coach.specialization}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`text-sm ${
+                              darkmode ? "text-gray-300" : "text-gray-700"
+                            }`}
+                          >
+                            {coach.experience}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <FaMapMarkerAlt
+                              className={`text-xs ${
+                                darkmode ? "text-gray-400" : "text-gray-500"
+                              }`}
+                            />
+                            <span
+                              className={`text-sm ${
+                                darkmode ? "text-gray-300" : "text-gray-700"
+                              }`}
+                            >
+                              {coach.location}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1">
+                            <FaStar className="text-yellow-500 text-xs" />
+                            <span
+                              className={`text-sm font-medium ${
+                                darkmode ? "text-gray-300" : "text-gray-700"
+                              }`}
+                            >
+                              {coach.rating}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`inline-flex items-center gap-1 px-3 py-1 rounded-xl text-sm font-bold ${
+                              darkmode
+                                ? "bg-emerald-900/30 text-emerald-300 border border-emerald-700/50"
+                                : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                            }`}
+                          >
+                            <FaDollarSign className="text-xs" />৳
+                            {coach.hourlyRate}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              className={`p-2 rounded-xl transition-all duration-300 ${
+                                darkmode
+                                  ? "bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white"
+                                  : "bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900"
+                              } hover:scale-105`}
+                              onClick={() => setDetailsCoach(coach)}
+                              title="View Details"
+                            >
+                              <FaEye className="text-sm" />
+                            </button>
+                            <button
+                              className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105"
+                              onClick={() => {
+                                if (user) {
+                                  setSelectedCoach(coach);
+                                } else {
+                                  Swal.fire({
+                                    icon: "warning",
+                                    title: "Sign In Required",
+                                    text: "You need to sign in to book a coach",
+                                    showConfirmButton: true,
+                                    confirmButtonText: "Sign In",
+                                    showCancelButton: true,
+                                    cancelButtonText: "Cancel",
+                                  }).then((result) => {
+                                    if (result.isConfirmed) {
+                                      navigate("/SignIn", {
+                                        state: {
+                                          from: location.pathname,
+                                          coach,
+                                        },
+                                      });
+                                    }
+                                  });
+                                }
+                              }}
+                              title="Book Coach"
+                            >
+                              <FaCalendarAlt className="text-sm" />
+                            </button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
+
+        {/* No Coaches Found */}
+        {coaches.length === 0 && !loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`text-center py-16 ${
+              darkmode
+                ? "bg-gray-800/50 border-gray-700"
+                : "bg-white/50 border-gray-200"
+            } rounded-3xl border backdrop-blur-sm`}
+          >
+            <div className="mb-6">
+              <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <FaUser className="text-white text-3xl" />
+              </div>
+              <h3
+                className={`text-2xl font-bold mb-2 ${
+                  darkmode ? "text-gray-200" : "text-gray-800"
+                }`}
+              >
+                No Coaches Found
+              </h3>
+              <p
+                className={`text-lg ${
+                  darkmode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                Try adjusting your search criteria or filters
+              </p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Pagination Controls */}
+        {coaches.length > 0 && totalPages > 1 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className={`mt-12 ${
+              darkmode
+                ? "bg-gray-800/80 border-gray-700/30"
+                : "bg-white/80 border-white/20"
+            } backdrop-blur-sm rounded-3xl shadow-xl border p-6`}
+          >
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+              {/* Pagination Info */}
+              <div
+                className={`text-sm ${
+                  darkmode ? "text-gray-300" : "text-gray-600"
+                }`}
+              >
+                Showing{" "}
+                <span className="font-semibold">
+                  {(currentPage - 1) * CARDS_PER_PAGE + 1}
+                </span>{" "}
+                to{" "}
+                <span className="font-semibold">
+                  {Math.min(currentPage * CARDS_PER_PAGE, totalCoaches)}
+                </span>{" "}
+                of <span className="font-semibold">{totalCoaches}</span> coaches
+              </div>
+
+              {/* Pagination Buttons */}
+              <div className="flex items-center gap-2">
+                {/* Previous Button */}
+                <button
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
+                    currentPage === 1
+                      ? `${
+                          darkmode
+                            ? "bg-gray-700/50 text-gray-500 cursor-not-allowed"
+                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        }`
+                      : `${
+                          darkmode
+                            ? "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white"
+                            : "bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600"
+                        } shadow-sm hover:shadow-md`
+                  }`}
+                >
+                  <FaChevronLeft className="text-xs" />
+                  <span className="hidden sm:inline">Previous</span>
+                </button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNumber;
+                    if (totalPages <= 5) {
+                      pageNumber = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNumber = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNumber = totalPages - 4 + i;
+                    } else {
+                      pageNumber = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => goToPage(pageNumber)}
+                        className={`w-10 h-10 rounded-xl font-medium transition-all duration-300 ${
+                          currentPage === pageNumber
+                            ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
+                            : `${
+                                darkmode
+                                  ? "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white"
+                                  : "bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600"
+                              } shadow-sm hover:shadow-md`
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
+                    currentPage === totalPages
+                      ? `${
+                          darkmode
+                            ? "bg-gray-700/50 text-gray-500 cursor-not-allowed"
+                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        }`
+                      : `${
+                          darkmode
+                            ? "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white"
+                            : "bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600"
+                        } shadow-sm hover:shadow-md`
+                  }`}
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <FaChevronRight className="text-xs" />
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
 
